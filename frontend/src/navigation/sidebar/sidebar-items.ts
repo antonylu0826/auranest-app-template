@@ -1,4 +1,4 @@
-import { type LucideIcon, StickyNote } from "lucide-react";
+import { type LucideIcon, Home, Users } from "lucide-react";
 
 export interface NavSubItem {
   title: string;
@@ -15,12 +15,14 @@ export interface NavMainItem {
   subItems?: NavSubItem[];
   comingSoon?: boolean;
   isNew?: boolean;
+  adminOnly?: boolean;
 }
 
 export interface NavGroup {
   id: number;
   label?: string;
   items: NavMainItem[];
+  adminOnly?: boolean;
 }
 
 export const sidebarItems: NavGroup[] = [
@@ -28,9 +30,22 @@ export const sidebarItems: NavGroup[] = [
     id: 1,
     items: [
       {
-        title: "Notes",
-        url: "/dashboard/notes",
-        icon: StickyNote,
+        title: "home",
+        url: "/dashboard",
+        icon: Home,
+      },
+    ],
+  },
+  {
+    id: 2,
+    label: "admin",
+    adminOnly: true,
+    items: [
+      {
+        title: "users",
+        url: "/dashboard/users",
+        icon: Users,
+        adminOnly: true,
       },
     ],
   },

@@ -19,7 +19,7 @@ export default function CallbackPage() {
       body: JSON.stringify({ code, redirectUri: `${window.location.origin}/callback` }),
     })
       .then((r) => r.json())
-      .then((d: { token: string }) => { setToken(d.token); router.replace("/dashboard/notes"); })
+      .then((d: { token: string }) => { setToken(d.token); router.replace("/dashboard/users"); })
       .catch(() => router.replace("/auth/login"));
   }, [router]);
 

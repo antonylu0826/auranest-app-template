@@ -2,13 +2,13 @@ import packageJson from "../../package.json";
 
 const currentYear = new Date().getFullYear();
 
+// ⚠️  Fork 後請修改以下所有欄位
 export const APP_CONFIG = {
-  name: "Studio Admin",
+  name: "My App",           // 側邊欄標題、歡迎頁版本列
   version: packageJson.version,
-  copyright: `© ${currentYear}, Studio Admin.`,
+  copyright: `© ${currentYear}, My App.`,
   meta: {
-    title: "Studio Admin - Modern Next.js Dashboard Starter Template",
-    description:
-      "Studio Admin is a modern, open-source dashboard starter template built with Next.js 16, Tailwind CSS v4, and shadcn/ui. Perfect for SaaS apps, admin panels, and internal tools—fully customizable and production-ready.",
+    title: "My App",        // HTML <title>
+    description: "My App.", // HTML meta description
   },
 };

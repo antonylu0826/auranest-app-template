@@ -1,4 +1,4 @@
-import { getToken } from "./auth";
+import { type UserRole, getToken } from "./auth";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
 
@@ -20,21 +20,24 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
   return res.json() as Promise<T>;
 }
 
-export interface Note {
+export interface User {
   id: string;
-  title: string;
-  body: string;
-  userId: string;
+  email: string;
+  name: string | null;
+  role: UserRole;
+  isActive: boolean;
   createdAt: string;
-  updatedAt: string;
 }
 
-export const notesApi = {
-  list: () => apiFetch<Note[]>("/notes"),
-  get: (id: string) => apiFetch<Note>(`/notes/${id}`),
-  create: (data: { title: string; body?: string }) =>
-    apiFetch<Note>("/notes", { method: "POST", body: JSON.stringify(data) }),
-  update: (id: string, data: { title?: string; body?: string }) =>
-    apiFetch<Note>(`/notes/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
-  remove: (id: string) => apiFetch<void>(`/notes/${id}`, { method: "DELETE" }),
+export const usersApi = {
+  list: () => apiFetch<User[]>("/users"),
+  get: (id: string) => apiFetch<User>(`/users/${id}`),
+  create: (data: { email: string; password: string; name?: string; role?: UserRole }) =>
+    apiFetch<User>("/users", { method: "POST", body: JSON.stringify(data) }),
+  update: (id: string, data: { name?: string; isActive?: boolean }) =>
+    apiFetch<User>(`/users/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+  updateRole: (id: string, role: UserRole) =>
+    apiFetch<User>(`/users/${id}/role`, { method: "PATCH", body: JSON.stringify({ role }) }),
+  remove: (id: string) => apiFetch<void>(`/users/${id}`, { method: "DELETE" }),
 };
+

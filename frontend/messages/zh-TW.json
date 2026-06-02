@@ -1,0 +1,74 @@
+{
+  "common": {
+    "save": "儲存",
+    "cancel": "取消",
+    "delete": "刪除",
+    "edit": "編輯",
+    "create": "建立",
+    "creating": "建立中…",
+    "saving": "儲存中…",
+    "enable": "啟用",
+    "disable": "停用",
+    "loading": "載入中…",
+    "noData": "找不到資料。"
+  },
+  "auth": {
+    "signIn": "登入",
+    "signingIn": "登入中…",
+    "loginError": "登入失敗",
+    "email": "電子郵件",
+    "password": "密碼",
+    "emailPlaceholder": "you@example.com",
+    "passwordPlaceholder": "••••••••",
+    "welcomeBack": "歡迎回來",
+    "signInToContinue": "登入以繼續",
+    "enterCredentials": "輸入帳號密碼以繼續",
+    "continueWithSso": "使用 SSO 繼續",
+    "useOrgAccount": "使用您的組織帳號繼續"
+  },
+  "nav": {
+    "account": "帳號設定",
+    "logout": "登出"
+  },
+  "sidebar": {
+    "home": "首頁",
+    "admin": "管理",
+    "users": "使用者"
+  },
+  "welcome": {
+    "greeting": "歡迎回來",
+    "subtitle": "今天有什麼需要處理的嗎？",
+    "quickAccess": "快速存取"
+  },
+  "pages": {
+    "dashboard": "首頁",
+    "users": "使用者"
+  },
+  "users": {
+    "title": "使用者",
+    "newUser": "新增使用者",
+    "createUser": "建立使用者",
+    "name": "姓名",
+    "namePlaceholder": "王小明",
+    "email": "電子郵件",
+    "emailPlaceholder": "user@example.com",
+    "password": "密碼",
+    "passwordPlaceholder": "至少 8 個字元",
+    "role": "角色",
+    "status": "狀態",
+    "created": "建立時間",
+    "active": "啟用",
+    "disabled": "停用",
+    "you": "（你）",
+    "tileDesc": "管理系統使用者與角色",
+    "editUser": "編輯使用者",
+    "deleteUser": "刪除使用者",
+    "deleteConfirm": "這個操作無法復原，帳號將被永久刪除。",
+    "searchPlaceholder": "搜尋名稱或電子郵件…",
+    "noUsers": "找不到使用者。",
+    "roles": {
+      "ADMIN": "管理員",
+      "USER": "一般用戶"
+    }
+  }
+}

@@ -17,11 +17,14 @@ export function clearToken() {
   localStorage.removeItem("token");
 }
 
+export type UserRole = "ADMIN" | "USER";
+
 export interface CurrentUser {
   sub: string;
   email: string;
   name?: string;
   avatar?: string;
+  role?: UserRole;
 }
 
 export function decodeToken(token: string): CurrentUser | null {
@@ -33,6 +36,7 @@ export function decodeToken(token: string): CurrentUser | null {
       email: decoded.email ?? "",
       name: decoded.name ?? decoded.email ?? "User",
       avatar: "",
+      role: decoded.role,
     };
   } catch {
     return null;

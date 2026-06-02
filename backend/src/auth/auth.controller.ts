@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Get, Post, Request, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { JwtAuthGuard } from './guards/jwt.guard';
@@ -19,19 +19,21 @@ export class AuthController {
       email: dto.email,
       password: hashed,
       name: dto.name,
+      role: 'USER',
     });
-    const token = this.jwtService.sign({ sub: user.id, email: user.email });
-    return { token, user: { id: user.id, email: user.email, name: user.name } };
+    const token = this.jwtService.sign({ sub: user.id, email: user.email, name: user.name, role: user.role });
+    return { token, user: { id: user.id, email: user.email, name: user.name, role: user.role } };
   }
 
   @Post('login')
   async login(@Body() dto: LoginDto) {
     const user = await this.usersService.findByEmail(dto.email);
     if (!user || !(await bcrypt.compare(dto.password, user.password))) {
-      throw new Error('Invalid credentials');
+      throw new UnauthorizedException('Invalid credentials');
     }
-    const token = this.jwtService.sign({ sub: user.id, email: user.email });
-    return { token, user: { id: user.id, email: user.email, name: user.name } };
+    if (!user.isActive) throw new ForbiddenException('Account is disabled');
+    const token = this.jwtService.sign({ sub: user.id, email: user.email, name: user.name, role: user.role });
+    return { token, user: { id: user.id, email: user.email, name: user.name, role: user.role } };
   }
 
   @Get('me')

@@ -1,12 +1,15 @@
 "use client";
 
-import { decodeToken, getToken } from "@/lib/auth";
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
+import { type CurrentUser, decodeToken, getToken } from "@/lib/auth";
 
 export function useCurrentUser() {
-  return useMemo(() => {
+  const [user, setUser] = useState<CurrentUser | null>(null);
+
+  useEffect(() => {
     const token = getToken();
-    if (!token) return null;
-    return decodeToken(token);
+    setUser(token ? decodeToken(token) : null);
   }, []);
+
+  return user;
 }

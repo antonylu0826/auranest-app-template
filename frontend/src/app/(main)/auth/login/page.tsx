@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Command } from "lucide-react";
+import { useTranslations } from "@/i18n/provider";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -27,8 +28,12 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 export default function LoginPage() {
+  const t = useTranslations("auth");
   const router = useRouter();
-  const form = useForm<FormValues>({ resolver: zodResolver(schema) });
+  const form = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { email: "", password: "" },
+  });
 
   if (isOidc) {
     return (
@@ -38,12 +43,12 @@ export default function LoginPage() {
             <div className="flex justify-center mb-4">
               <Command className="size-8" />
             </div>
-            <CardTitle>Sign in</CardTitle>
-            <CardDescription>Use your organisation account to continue</CardDescription>
+            <CardTitle>{t("signIn")}</CardTitle>
+            <CardDescription>{t("useOrgAccount")}</CardDescription>
           </CardHeader>
           <CardContent>
             <Button className="w-full" onClick={redirectToOidc}>
-              Continue with SSO
+              {t("continueWithSso")}
             </Button>
           </CardContent>
         </Card>
@@ -55,10 +60,10 @@ export default function LoginPage() {
     try {
       const token = await loginLocal(values.email, values.password);
       setToken(token);
-      router.replace("/dashboard/notes");
+      router.replace("/dashboard/users");
     } catch (err) {
       form.setError("root", {
-        message: err instanceof Error ? err.message : "Login failed",
+        message: err instanceof Error ? err.message : t("loginError"),
       });
     }
   }
@@ -68,15 +73,15 @@ export default function LoginPage() {
       <div className="hidden bg-primary lg:flex lg:w-1/3 items-center justify-center p-12">
         <div className="space-y-4 text-center">
           <Command className="mx-auto size-12 text-primary-foreground" />
-          <h1 className="font-light text-4xl text-primary-foreground">Welcome back</h1>
-          <p className="text-primary-foreground/80">Sign in to continue</p>
+          <h1 className="font-light text-4xl text-primary-foreground">{t("welcomeBack")}</h1>
+          <p className="text-primary-foreground/80">{t("signInToContinue")}</p>
         </div>
       </div>
       <div className="flex flex-1 items-center justify-center bg-background p-8">
         <div className="w-full max-w-md space-y-8">
           <div className="text-center">
-            <h2 className="text-2xl font-semibold tracking-tight">Sign in</h2>
-            <p className="text-muted-foreground text-sm mt-2">Enter your credentials to continue</p>
+            <h2 className="text-2xl font-semibold tracking-tight">{t("signIn")}</h2>
+            <p className="text-muted-foreground text-sm mt-2">{t("enterCredentials")}</p>
           </div>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -85,9 +90,9 @@ export default function LoginPage() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>{t("email")}</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="you@example.com" {...field} />
+                      <Input type="email" placeholder={t("emailPlaceholder")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -98,9 +103,9 @@ export default function LoginPage() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>{t("password")}</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="••••••••" {...field} />
+                      <Input type="password" placeholder={t("passwordPlaceholder")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -110,7 +115,7 @@ export default function LoginPage() {
                 <p className="text-sm text-destructive">{form.formState.errors.root.message}</p>
               )}
               <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? "Signing in..." : "Sign in"}
+                {form.formState.isSubmitting ? t("signingIn") : t("signIn")}
               </Button>
             </form>
           </Form>

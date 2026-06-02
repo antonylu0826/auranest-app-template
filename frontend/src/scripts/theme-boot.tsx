@@ -1,14 +1,15 @@
 /**
- * Boot script that reads user preference values (theme mode, theme preset,
- * content layout, navbar style) from cookies or localStorage based on the
- * configured persistence mode.
+ * Boot script that reads user preference values from cookies / localStorage
+ * and applies data-attributes to <html> before hydration to prevent flicker.
  *
- * Runs early in <head> to apply the correct data attributes before hydration,
- * preventing layout or theme flicker and keeping RootLayout fully static.
+ * Exported as a raw code string so that layout.tsx can embed it via
+ * dangerouslySetInnerHTML directly on a <script> element inside <head>.
+ * This avoids the React 19 "Encountered a script tag" warning which fires
+ * when a <script> is returned from a React component function.
  */
 import { PREFERENCE_DEFAULTS, PREFERENCE_PERSISTENCE } from "@/lib/preferences/preferences-config";
 
-export function ThemeBootScript() {
+function buildCode(): string {
   const persistence = JSON.stringify({
     theme_mode: PREFERENCE_PERSISTENCE.theme_mode,
     theme_preset: PREFERENCE_PERSISTENCE.theme_preset,
@@ -18,7 +19,6 @@ export function ThemeBootScript() {
     sidebar_variant: PREFERENCE_PERSISTENCE.sidebar_variant,
     sidebar_collapsible: PREFERENCE_PERSISTENCE.sidebar_collapsible,
   });
-
   const defaults = JSON.stringify({
     theme_mode: PREFERENCE_DEFAULTS.theme_mode,
     theme_preset: PREFERENCE_DEFAULTS.theme_preset,
@@ -29,85 +29,27 @@ export function ThemeBootScript() {
     sidebar_collapsible: PREFERENCE_DEFAULTS.sidebar_collapsible,
   });
 
-  const code = `
-    (function () {
-      try {
-        var root = document.documentElement;
-        var PERSISTENCE = ${persistence};
-        var DEFAULTS = ${defaults};
-
-        function readCookie(name) {
-          var match = document.cookie.split("; ").find(function(c) {
-            return c.startsWith(name + "=");
-          });
-          return match ? decodeURIComponent(match.split("=")[1]) : null;
-        }
-
-        function readLocal(name) {
-          try {
-            return window.localStorage.getItem(name);
-          } catch (e) {
-            return null;
-          }
-        }
-
-        function readPreference(key, fallback) {
-          var mode = PERSISTENCE[key];
-          var value = null;
-
-          if (mode === "localStorage") {
-            value = readLocal(key);
-          }
-
-          if (!value && (mode === "client-cookie" || mode === "server-cookie")) {
-            value = readCookie(key);
-          }
-
-          if (!value || typeof value !== "string") {
-            return fallback;
-          }
-
-          return value;
-        }
-
-        var rawMode = readPreference("theme_mode", DEFAULTS.theme_mode);
-        var rawPreset = readPreference("theme_preset", DEFAULTS.theme_preset);
-        var rawFont = readPreference("font", DEFAULTS.font);
-        var rawContentLayout = readPreference("content_layout", DEFAULTS.content_layout);
-        var rawNavbarStyle = readPreference("navbar_style", DEFAULTS.navbar_style);
-        var rawSidebarVariant = readPreference("sidebar_variant", DEFAULTS.sidebar_variant);
-        var rawSidebarCollapsible = readPreference("sidebar_collapsible", DEFAULTS.sidebar_collapsible);
-
-        var isValidMode = rawMode === "dark" || rawMode === "light" || rawMode === "system";
-        var mode = isValidMode ? rawMode : DEFAULTS.theme_mode;
-        var resolvedMode =
-          mode === "system" && window.matchMedia
-            ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
-            : mode;
-        var preset = rawPreset || DEFAULTS.theme_preset;
-        var font = rawFont || DEFAULTS.font;
-        var contentLayout = rawContentLayout || DEFAULTS.content_layout;
-        var navbarStyle = rawNavbarStyle || DEFAULTS.navbar_style;
-        var sidebarVariant = rawSidebarVariant || DEFAULTS.sidebar_variant;
-        var sidebarCollapsible = rawSidebarCollapsible || DEFAULTS.sidebar_collapsible;
-
-        root.classList.toggle("dark", resolvedMode === "dark");
-        root.setAttribute("data-theme-mode", mode);
-        root.setAttribute("data-theme-preset", preset);
-        root.setAttribute("data-font", font);
-        root.setAttribute("data-content-layout", contentLayout);
-        root.setAttribute("data-navbar-style", navbarStyle);
-        root.setAttribute("data-sidebar-variant", sidebarVariant);
-        root.setAttribute("data-sidebar-collapsible", sidebarCollapsible);
-
-        root.style.colorScheme = resolvedMode === "dark" ? "dark" : "light";
-
-      } catch (e) {
-        console.warn("ThemeBootScript error:", e);
-      }
-    })();
-  `;
-
-  /* biome-ignore lint/security/noDangerouslySetInnerHtml: required for pre-hydration boot script */
-  return <script dangerouslySetInnerHTML={{ __html: code }} />;
+  return `(function(){try{
+var root=document.documentElement;
+var P=${persistence};
+var D=${defaults};
+function rc(n){var m=document.cookie.split("; ").find(function(c){return c.startsWith(n+"=");});return m?decodeURIComponent(m.split("=")[1]):null;}
+function rl(n){try{return window.localStorage.getItem(n);}catch(e){return null;}}
+function rp(k,fb){var mode=P[k],v=null;if(mode==="localStorage")v=rl(k);if(!v&&(mode==="client-cookie"||mode==="server-cookie"))v=rc(k);return(v&&typeof v==="string")?v:fb;}
+var rawMode=rp("theme_mode",D.theme_mode);
+var valid=rawMode==="dark"||rawMode==="light"||rawMode==="system";
+var mode=valid?rawMode:D.theme_mode;
+var resolved=mode==="system"&&window.matchMedia?(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):mode;
+root.classList.toggle("dark",resolved==="dark");
+root.setAttribute("data-theme-mode",mode);
+root.setAttribute("data-theme-preset",rp("theme_preset",D.theme_preset));
+root.setAttribute("data-font",rp("font",D.font));
+root.setAttribute("data-content-layout",rp("content_layout",D.content_layout));
+root.setAttribute("data-navbar-style",rp("navbar_style",D.navbar_style));
+root.setAttribute("data-sidebar-variant",rp("sidebar_variant",D.sidebar_variant));
+root.setAttribute("data-sidebar-collapsible",rp("sidebar_collapsible",D.sidebar_collapsible));
+root.style.colorScheme=resolved==="dark"?"dark":"light";
+}catch(e){console.warn("ThemeBootScript error:",e);}})();`;
 }
+
+export const themeBootCode = buildCode();

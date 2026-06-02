@@ -1,0 +1,74 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "creating": "Creating…",
+    "saving": "Saving…",
+    "enable": "Enable",
+    "disable": "Disable",
+    "loading": "Loading…",
+    "noData": "No data found."
+  },
+  "auth": {
+    "signIn": "Sign in",
+    "signingIn": "Signing in…",
+    "loginError": "Login failed",
+    "email": "Email",
+    "password": "Password",
+    "emailPlaceholder": "you@example.com",
+    "passwordPlaceholder": "••••••••",
+    "welcomeBack": "Welcome back",
+    "signInToContinue": "Sign in to continue",
+    "enterCredentials": "Enter your credentials to continue",
+    "continueWithSso": "Continue with SSO",
+    "useOrgAccount": "Use your organisation account to continue"
+  },
+  "nav": {
+    "account": "Account",
+    "logout": "Log out"
+  },
+  "sidebar": {
+    "home": "Home",
+    "admin": "Admin",
+    "users": "Users"
+  },
+  "welcome": {
+    "greeting": "Welcome back",
+    "subtitle": "What would you like to do today?",
+    "quickAccess": "Quick access"
+  },
+  "pages": {
+    "dashboard": "Home",
+    "users": "Users"
+  },
+  "users": {
+    "title": "Users",
+    "newUser": "New user",
+    "createUser": "Create user",
+    "name": "Name",
+    "namePlaceholder": "Jane Doe",
+    "email": "Email",
+    "emailPlaceholder": "user@example.com",
+    "password": "Password",
+    "passwordPlaceholder": "Min. 8 characters",
+    "role": "Role",
+    "status": "Status",
+    "created": "Created",
+    "active": "Active",
+    "disabled": "Disabled",
+    "you": "(you)",
+    "tileDesc": "Manage system users and roles",
+    "editUser": "Edit user",
+    "deleteUser": "Delete user",
+    "deleteConfirm": "This action cannot be undone. The account will be permanently deleted.",
+    "searchPlaceholder": "Search by name or email…",
+    "noUsers": "No users found.",
+    "roles": {
+      "ADMIN": "Admin",
+      "USER": "User"
+    }
+  }
+}

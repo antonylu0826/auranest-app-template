@@ -1,11 +1,15 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  USER
 }
 
 // Used only in local auth mode — ignored in OIDC mode
@@ -14,21 +18,10 @@ model User {
   email     String   @unique
   password  String
   name      String?
+  role      UserRole @default(USER)
+  isActive  Boolean  @default(true) @map("is_active")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("users")
-}
-
-// Sample resource — userId stores JWT sub (local: user.id, oidc: Keycloak sub)
-model Note {
-  id        String   @id @default(cuid())
-  title     String
-  body      String   @default("")
-  userId    String   @map("user_id")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@index([userId])
-  @@map("notes")
 }

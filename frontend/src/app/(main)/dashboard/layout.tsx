@@ -7,19 +7,21 @@ import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { SIDEBAR_COLLAPSIBLE_VALUES, SIDEBAR_VARIANT_VALUES } from "@/lib/preferences/layout";
 import { cn } from "@/lib/utils";
-import { getPreference } from "@/server/server-actions";
+import { getLocale, getPreference } from "@/server/server-actions";
 
+import { AppBreadcrumb } from "@/components/app-breadcrumb";
+import { LocaleSwitcher } from "@/components/locale-switcher";
 import { LayoutControls } from "./_components/sidebar/layout-controls";
-import { SearchDialog } from "./_components/sidebar/search-dialog";
 import { ThemeSwitcher } from "./_components/sidebar/theme-switcher";
 
 export default async function Layout({ children }: Readonly<{ children: ReactNode }>) {
   const cookieStore = await cookies();
   const defaultOpen = cookieStore.get("sidebar_state")?.value !== "false";
-  const [variant, collapsible] = await Promise.all([
+  const [locale, variant, collapsible] = await Promise.all([
+    getLocale(),
     getPreference("sidebar_variant", SIDEBAR_VARIANT_VALUES, "inset"),
     getPreference("sidebar_collapsible", SIDEBAR_COLLAPSIBLE_VALUES, "icon"),
-  ]);
+  ] as const);
 
   return (
     <SidebarProvider
@@ -53,9 +55,10 @@ export default async function Layout({ children }: Readonly<{ children: ReactNod
                 orientation="vertical"
                 className="mx-2 data-[orientation=vertical]:h-4 data-[orientation=vertical]:self-center"
               />
-              <SearchDialog />
+              <AppBreadcrumb />
             </div>
             <div className="flex items-center gap-2">
+              <LocaleSwitcher currentLocale={locale} />
               <LayoutControls />
               <ThemeSwitcher />
             </div>
