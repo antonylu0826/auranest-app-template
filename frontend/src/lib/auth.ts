@@ -1,0 +1,55 @@
+const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000';
+const AUTH_MODE = process.env.NEXT_PUBLIC_AUTH_MODE ?? 'local';
+const OIDC_ISSUER = process.env.NEXT_PUBLIC_OIDC_ISSUER ?? '';
+
+export const isOidc = AUTH_MODE === 'oidc';
+
+export function getToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('token');
+}
+
+export function setToken(token: string) {
+  localStorage.setItem('token', token);
+}
+
+export function clearToken() {
+  localStorage.removeItem('token');
+}
+
+export async function loginLocal(email: string, password: string): Promise<string> {
+  const res = await fetch(`${API}/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
+  if (!res.ok) throw new Error('Login failed');
+  const data = (await res.json()) as { token: string };
+  return data.token;
+}
+
+export async function registerLocal(
+  email: string,
+  password: string,
+  name?: string,
+): Promise<string> {
+  const res = await fetch(`${API}/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password, name }),
+  });
+  if (!res.ok) throw new Error('Registration failed');
+  const data = (await res.json()) as { token: string };
+  return data.token;
+}
+
+export function redirectToOidc() {
+  // PKCE flow — redirect to Keycloak authorization endpoint
+  const params = new URLSearchParams({
+    client_id: 'app',
+    redirect_uri: `${window.location.origin}/callback`,
+    response_type: 'code',
+    scope: 'openid profile email',
+  });
+  window.location.href = `${OIDC_ISSUER}/protocol/openid-connect/auth?${params}`;
+}
