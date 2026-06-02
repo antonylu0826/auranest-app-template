@@ -30,7 +30,9 @@ export interface CurrentUser {
 export function decodeToken(token: string): CurrentUser | null {
   try {
     const payload = token.split(".")[1];
-    const decoded = JSON.parse(atob(payload));
+    const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+    const decoded = JSON.parse(new TextDecoder().decode(bytes));
     return {
       sub: decoded.sub ?? "",
       email: decoded.email ?? "",

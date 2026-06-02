@@ -21,6 +21,7 @@ pnpm -C frontend install
 
 docker compose up db -d
 pnpm -C backend prisma:migrate
+pnpm -C backend prisma:seed      # 建立預設 ADMIN 帳號（SEED_USER_* 設定在 backend/.env）
 pnpm dev              # backend :3000 + frontend :3001
 ```
 

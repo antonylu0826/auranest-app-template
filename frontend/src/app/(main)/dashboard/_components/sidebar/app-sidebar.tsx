@@ -72,7 +72,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   const currentUser = useCurrentUser();
   const router = useRouter();
-  const user = currentUser ?? { name: "User", email: "", avatar: "" };
 
   const variant = isSynced ? sidebarVariant : props.variant;
   const collapsible = isSynced ? sidebarCollapsible : props.collapsible;
@@ -97,7 +96,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {/* <NavSecondary items={data.navSecondary} className="mt-auto" /> */}
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={user} onLogout={() => { clearToken(); router.replace("/auth/login"); }} />
+        {currentUser && (
+          <NavUser
+            user={{ name: currentUser.name ?? currentUser.email, email: currentUser.email, avatar: currentUser.avatar ?? "" }}
+            onLogout={() => { clearToken(); router.replace("/auth/login"); }}
+          />
+        )}
       </SidebarFooter>
     </Sidebar>
   );
