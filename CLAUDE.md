@@ -223,6 +223,113 @@ V2 與 V1 的差異：**沒有 multi-schema，沒有 `@@schema()`**，每個 app
 
 ---
 
+## 新增一個業務模組的標準流程
+
+每次新增 CRUD 功能（如員工管理、組織部門）都照以下順序進行。
+
+### 1. Backend — Schema
+
+```prisma
+// backend/prisma/schema.prisma
+enum MyStatus { ACTIVE INACTIVE }
+
+model MyModel {
+  id        String    @id @default(cuid())
+  name      String
+  // ...
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  @@map("my_models")
+}
+```
+
+> ⚠️ **停掉 dev server** 再執行 generate / migrate（避免 Windows DLL 鎖定）
+
+```bash
+npx prisma generate
+npx prisma migrate dev --name add_my_model
+```
+
+### 2. Backend — Module
+
+依序建立：
+
+```
+backend/src/my-module/
+  dto/my-model.dto.ts        # Zod schema + TypeScript type
+  my-module.service.ts       # findAll / findOne / create / update / remove
+  my-module.controller.ts    # @Controller + @UseGuards + ZodValidationPipe
+  my-module.module.ts
+```
+
+- `findAll` 使用 `paginationQuerySchema` + `paginate()` / `toPrismaPage()` / `toPrismaOrderBy()`（來自 `common/pagination`）
+- Controller 一律加 `JwtAuthGuard` + `RolesGuard`
+- 在 `app.module.ts` imports 陣列加入新 module
+
+```bash
+npx tsc --noEmit   # 確認無型別錯誤
+```
+
+### 3. Frontend — API
+
+```
+frontend/src/lib/my-model-api.ts
+```
+
+- export `MyModel` interface（與 backend response 欄位對應）
+- export `myModelApi.list / get / create / update / remove`
+- list 函式接受 `ListQuery`，回傳 `PaginatedResult<MyModel>`
+
+### 4. Frontend — i18n
+
+在 `frontend/messages/zh-TW.json` 和 `en.json` 同步加入：
+
+```json
+{
+  "sidebar": { "myModule": "顯示名稱" },
+  "pages":   { "myModule": "顯示名稱" },
+  "myModule": {
+    "title": "...", "newItem": "...",
+    "searchPlaceholder": "...", "noItems": "..."
+    // CRUD 動作、欄位標籤、enum 對應文字…
+  }
+}
+```
+
+### 5. Frontend — Sidebar
+
+`frontend/src/navigation/sidebar/sidebar-items.ts`：
+
+```ts
+{
+  title: "myModule",          // 對應 messages.sidebar.myModule
+  url: "/dashboard/my-module",
+  icon: SomeIcon,
+}
+```
+
+若新路由 segment 需要出現在麵包屑，同步更新 `app-breadcrumb.tsx` 的 `TRANSLATABLE_SEGMENTS`（對應 `messages.pages`）。
+
+### 6. Frontend — 頁面
+
+```
+frontend/src/app/(main)/dashboard/my-module/
+  page.tsx                   # 列表（TanStack Table + server-side 搜尋/排序/分頁）
+  new/page.tsx               # 新增
+  [id]/edit/page.tsx         # 編輯（useQuery 載入 → useEffect reset form）
+  _components/
+    my-model-form.tsx        # 共用表單（RHF + Zod，欄位多時用獨立頁面）
+    delete-my-model-dialog.tsx
+```
+
+**欄位多（> 8 個）→ 獨立頁面；欄位少 → Dialog 即可。**
+
+```bash
+npx tsc --noEmit   # 前後端都要確認無型別錯誤再 commit
+```
+
+---
+
 ## Fork 一個新 app 的步驟
 
 1. Fork / copy 此 repo → 重命名（e.g. `auranest-hr`）
