@@ -1,13 +1,13 @@
-import { getToken } from './auth';
+import { getToken } from "./auth";
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000';
+const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const token = getToken();
   const res = await fetch(`${API}${path}`, {
     ...init,
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...init?.headers,
     },
@@ -29,14 +29,12 @@ export interface Note {
   updatedAt: string;
 }
 
-export const api = {
-  notes: {
-    list: () => request<Note[]>('/notes'),
-    get: (id: string) => request<Note>(`/notes/${id}`),
-    create: (data: { title: string; body?: string }) =>
-      request<Note>('/notes', { method: 'POST', body: JSON.stringify(data) }),
-    update: (id: string, data: { title?: string; body?: string }) =>
-      request<Note>(`/notes/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
-    remove: (id: string) => request<void>(`/notes/${id}`, { method: 'DELETE' }),
-  },
+export const notesApi = {
+  list: () => apiFetch<Note[]>("/notes"),
+  get: (id: string) => apiFetch<Note>(`/notes/${id}`),
+  create: (data: { title: string; body?: string }) =>
+    apiFetch<Note>("/notes", { method: "POST", body: JSON.stringify(data) }),
+  update: (id: string, data: { title?: string; body?: string }) =>
+    apiFetch<Note>(`/notes/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+  remove: (id: string) => apiFetch<void>(`/notes/${id}`, { method: "DELETE" }),
 };
