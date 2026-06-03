@@ -214,6 +214,8 @@ V2 與 V1 的差異：**沒有 multi-schema，沒有 `@@schema()`**，每個 app
 
 `AppSelect` 的原因：Radix UI 的 `<SelectValue />` 需要 `SelectItem` 在 context 裡 register 才能顯示 label；動態 options 載入時序不固定，用 `AppSelect` 可透過 `options.find()` 直接算出顯示文字，完全避開這個問題。
 
+> ⚠️ **`<SelectItem value="">` 是非法值**：Radix UI 不允許空字串作為 SelectItem 的 value，會造成 runtime error。需要「無選擇」選項時，用 `nullable` prop（AppSelect）或 `"__none__"` sentinel（原生 Select）。
+
 ```tsx
 // ✅ 靜態 options → Select
 <Select value={watch("gender")} onValueChange={(v) => setValue("gender", v)}>
@@ -326,6 +328,8 @@ frontend/src/lib/my-model-api.ts
 - export `myModelApi.list / get / create / update / remove`
 - list 函式接受 `ListQuery`，回傳 `PaginatedResult<MyModel>`
 
+> ⚠️ **`limit` 上限是 100**：後端 `paginationQuerySchema` 設有 `max(100)`，傳超過 100 的值會得到 400 error。下拉選單用的「撈全部」查詢請用 `limit: 100`。
+
 ### 4. Frontend — i18n
 
 在 `frontend/messages/zh-TW.json` 和 `en.json` 同步加入：
@@ -362,13 +366,56 @@ frontend/src/lib/my-model-api.ts
 frontend/src/app/(main)/dashboard/my-module/
   page.tsx                   # 列表（TanStack Table + server-side 搜尋/排序/分頁）
   new/page.tsx               # 新增
-  [id]/edit/page.tsx         # 編輯（useQuery 載入 → useEffect reset form）
+  [id]/edit/page.tsx         # 編輯（見下方 Form 資料載入模式）
   _components/
     my-model-form.tsx        # 共用表單（RHF + Zod，欄位多時用獨立頁面）
     delete-my-model-dialog.tsx
 ```
 
 **欄位多（> 8 個）→ 獨立頁面；欄位少 → Dialog 即可。**
+
+**Form 資料載入模式（依情境選擇，禁止亂用 `useEffect + reset`）：**
+
+**① Edit 獨立頁面** — `isLoading` 遮擋後 form 才 mount，直接用 `defaultValues`：
+
+```tsx
+// edit/page.tsx
+const { data, isLoading } = useQuery({ queryKey: [...], queryFn: () => api.get(id) });
+
+{isLoading ? <Skeleton /> : <MyModelForm defaultValues={data} />}
+
+// my-model-form.tsx — 不需要 useEffect + reset
+const form = useForm({
+  defaultValues: defaultValues
+    ? { name: defaultValues.name, ... }
+    : { name: "" },
+});
+```
+
+**② Edit Dialog（資料從 prop 同步取得）** — 在 `onOpenChange` 裡直接 reset：
+
+```tsx
+<Dialog onOpenChange={(o) => { setOpen(o); if (o) reset({ name: row.name, ... }); }}>
+  ...
+</Dialog>
+```
+
+**③ Edit Dialog（需 fetch fresh 資料）** — 加 `initialized` state，避免 async race：
+
+```tsx
+const [initialized, setInitialized] = useState(false);
+const { data: fresh, isLoading } = useQuery({ enabled: open && mode === "edit" });
+
+useEffect(() => {
+  if (fresh) { reset({ ... }); setInitialized(true); }
+  else if (!open) { setInitialized(false); }
+}, [fresh, open]);
+
+// 等兩者都就緒才顯示表單
+{(isLoading || !initialized) ? <p>{tc("loading")}</p> : <form>...</form>}
+```
+
+> ⚠️ **`useEffect + reset` 配合 `defaultValues` prop 是危險反模式**：TanStack Query 在背景 refetch 後 data 產生新 reference，effect 重跑，會蓋掉使用者正在編輯的欄位。模式①②③都不需要這個寫法。
 
 ```bash
 npx tsc --noEmit   # 前後端都要確認無型別錯誤再 commit
