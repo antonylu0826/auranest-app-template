@@ -197,6 +197,7 @@ V2 與 V1 的差異：**沒有 multi-schema，沒有 `@@schema()`**，每個 app
 | 用途 | 使用元件 |
 |------|----------|
 | 日期選擇 | `DatePicker`（`components/ui/date-picker.tsx`）|
+| 時間選擇 | `TimePicker`（`components/ui/time-picker.tsx`，24 小時制，HH:mm）|
 | 日期範圍 | `DateRangePicker`（`components/ui/date-range-picker.tsx`）|
 | 下拉選單 | `Select`（`components/ui/select.tsx`）|
 | 核取方塊 | `Checkbox`（`components/ui/checkbox.tsx`）|
