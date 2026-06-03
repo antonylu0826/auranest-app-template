@@ -481,7 +481,10 @@ pnpm -C backend schema:docs   # regenerate after any schema change
 5. 修改 `backend/prisma/schema.prisma` — 加業務 model
 6. 在 `backend/src/` 建立業務模組（參考 Users 模組結構）
 7. 在 `frontend/src/app/(main)/dashboard/` 建立業務頁面（參考 users/ 目錄結構）
-8. 更新 `.env.example` 的 port（避免和其他 app 衝突）
+8. 更新 port（避免和其他 app 衝突）：
+   - `.env.example`：`PORT` / `BACKEND_PORT` / `FRONTEND_PORT`
+   - `frontend/package.json`：`dev` / `start` script 的 `-p` 參數
+   - `frontend/.env.local`：`NEXT_PUBLIC_API_URL=http://localhost:<PORT>`
 9. 設定 `SEED_USER_*` → 執行 `pnpm -C backend prisma:seed` 建立初始 ADMIN 帳號
 
 ---
@@ -491,8 +494,8 @@ pnpm -C backend schema:docs   # regenerate after any schema change
 ```bash
 cp .env.example .env          # 填 POSTGRES_PASSWORD、JWT_SECRET、SEED_USER_*
 
-# backend 需要自己的 .env（Prisma / NestJS 從執行目錄讀，不繼承根目錄）
-cp .env backend/.env          # 再手動補 DATABASE_URL=postgresql://postgres:<密碼>@localhost:5432/app_db
+# Frontend 需要知道 backend URL（Next.js 從 frontend/ 目錄讀 .env.local）
+echo "NEXT_PUBLIC_API_URL=http://localhost:3000" > frontend/.env.local
 
 pnpm install                  # root dev tools
 pnpm -C backend install
@@ -500,14 +503,14 @@ pnpm -C frontend install
 
 docker compose up db -d
 pnpm -C backend prisma:migrate   # 建立 schema
-pnpm -C backend prisma:seed      # 建立預設 ADMIN 帳號（SEED_USER_* 設定在 backend/.env）
+pnpm -C backend prisma:seed      # 建立預設 ADMIN 帳號（SEED_USER_* 設定在根目錄 .env）
 pnpm dev                         # backend :3000 + frontend :3001
 ```
 
-> **兩個 `.env` 的分工**
-> - 根目錄 `.env` — Docker Compose 讀取（`POSTGRES_*`、`AUTH_MODE`、port 等）
-> - `backend/.env` — 本地 NestJS / Prisma CLI 讀取（需包含 `DATABASE_URL`）
-> - `SEED_USER_EMAIL / SEED_USER_PASSWORD / SEED_USER_NAME` 兩份都要填（seed 從 `backend/.env` 讀）
+> **`.env` 的分工**
+> - 根目錄 `.env` — **唯一主要設定檔**，backend scripts 皆以 `dotenv -e ../.env` 讀取，不需要 `backend/.env`
+> - `frontend/.env.local` — Next.js 從 `frontend/` 目錄讀，設定 `NEXT_PUBLIC_API_URL`（已 gitignored）
+> - `PORT` — NestJS 本地 dev server 監聽的 port；`BACKEND_PORT` — Docker host port mapping（兩個預設都是 3000）
 
 ---
 
