@@ -13,7 +13,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 
-const TRANSLATABLE_SEGMENTS = ["dashboard", "users", "home"] as const;
+const TRANSLATABLE_SEGMENTS = ["dashboard", "users", "calendar", "events", "home"] as const;
 type TranslatableSegment = (typeof TRANSLATABLE_SEGMENTS)[number];
 
 function isTranslatable(s: string): s is TranslatableSegment {

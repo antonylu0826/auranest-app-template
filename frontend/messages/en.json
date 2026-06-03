@@ -33,16 +33,70 @@
   },
   "sidebar": {
     "home": "Home",
+    "calendar": "Calendar",
+    "calendarView": "Calendar",
+    "events": "Events",
     "admin": "Admin",
     "users": "Users"
   },
   "welcome": {
     "greeting": "Welcome back",
-    "subtitle": "What would you like to do today?",
+    "subtitle": "What's on your schedule today?",
     "quickAccess": "Quick access"
   },
+  "calendarView": {
+    "title": "Calendar",
+    "today": "Today",
+    "month": "Month",
+    "week": "Week",
+    "day": "Day",
+    "newEvent": "New event"
+  },
+  "events": {
+    "title": "Events",
+    "newEvent": "New event",
+    "createEvent": "Create event",
+    "searchPlaceholder": "Search events…",
+    "noEvents": "No events found.",
+    "name": "Event name",
+    "namePlaceholder": "Enter event name",
+    "description": "Description",
+    "descriptionPlaceholder": "Event description (optional)",
+    "location": "Location",
+    "locationPlaceholder": "Location (optional)",
+    "startAt": "Start",
+    "endAt": "End",
+    "allDay": "All day",
+    "calendar": "Calendar",
+    "color": "Color",
+    "editEvent": "Edit event",
+    "deleteEvent": "Delete event",
+    "deleteConfirm": "This action cannot be undone. The event will be permanently deleted.",
+    "tileDesc": "Manage calendar events and schedules",
+    "statuses": {
+      "PENDING": "Pending",
+      "ACCEPTED": "Accepted",
+      "DECLINED": "Declined",
+      "TENTATIVE": "Tentative"
+    }
+  },
+  "calendars": {
+    "title": "Calendars",
+    "newCalendar": "New calendar",
+    "createCalendar": "Create calendar",
+    "editCalendar": "Edit calendar",
+    "deleteCalendar": "Delete calendar",
+    "deleteConfirm": "All events in this calendar will also be deleted. This action cannot be undone.",
+    "name": "Name",
+    "namePlaceholder": "e.g. Work, Personal",
+    "color": "Color",
+    "noCalendars": "No calendars yet.",
+    "tileDesc": "Manage my calendars"
+  }
   "pages": {
     "dashboard": "Home",
+    "calendar": "Calendar",
+    "events": "Events",
     "users": "Users"
   },
   "users": {

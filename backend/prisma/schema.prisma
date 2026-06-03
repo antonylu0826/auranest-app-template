@@ -28,5 +28,101 @@ model User {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  calendars      Calendar[]
+  ownedEvents    Event[]
+  eventAttendees EventAttendee[]
+
   @@map("users")
+}
+
+/// Display color for a calendar or event. Stored as a hex color string (e.g. "#4285F4").
+enum CalendarColor {
+  BLUE    // #4285F4 — Google Calendar default blue
+  GREEN   // #0F9D58
+  RED     // #DB4437
+  YELLOW  // #F4B400
+  PURPLE  // #7C4DFF
+  PINK    // #E91E63
+  TEAL    // #009688
+  GRAY    // #616161
+}
+
+/// Attendee RSVP status for an event invitation.
+enum AttendeeStatus {
+  PENDING   // invitation sent, no response yet
+  ACCEPTED  // attendee confirmed attendance
+  DECLINED  // attendee declined
+  TENTATIVE // attendee is unsure
+}
+
+/// A calendar owned by a user (e.g. "Work", "Personal"). Events belong to a calendar.
+model Calendar {
+  id          String        @id @default(cuid())
+  /// Human-readable calendar name, e.g. "Work" or "Personal".
+  name        String
+  /// Optional description of the calendar's purpose.
+  description String?
+  /// Display color used in the UI for this calendar's events.
+  color       CalendarColor @default(BLUE)
+  /// Whether this calendar is visible in the UI by default.
+  isVisible   Boolean       @default(true) @map("is_visible")
+  /// Whether this is the user's primary (default) calendar; only one per user.
+  isPrimary   Boolean       @default(false) @map("is_primary")
+  ownerId     String        @map("owner_id")
+  owner       User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  events Event[]
+
+  @@map("calendars")
+}
+
+/// A calendar event. Supports all-day events, timed events, and optional recurrence.
+model Event {
+  id          String        @id @default(cuid())
+  /// Short title displayed on the calendar grid.
+  title       String
+  /// Optional longer description or agenda.
+  description String?
+  /// Physical or virtual location of the event.
+  location    String?
+  /// Event start date-time (UTC). For all-day events this is midnight UTC of the start date.
+  startAt     DateTime      @map("start_at")
+  /// Event end date-time (UTC). For all-day events this is midnight UTC of the day after the last day.
+  endAt       DateTime      @map("end_at")
+  /// When true, startAt/endAt represent dates only; time-of-day is ignored in the UI.
+  isAllDay    Boolean       @default(false) @map("is_all_day")
+  /// Optional iCalendar RRULE string for recurring events (e.g. "FREQ=WEEKLY;BYDAY=MO,WE,FR").
+  recurrenceRule String?    @map("recurrence_rule")
+  /// Display color override; falls back to the parent calendar's color if null.
+  color       CalendarColor?
+  /// The calendar this event belongs to.
+  calendarId  String        @map("calendar_id")
+  calendar    Calendar      @relation(fields: [calendarId], references: [id], onDelete: Cascade)
+  /// User who created the event.
+  ownerId     String        @map("owner_id")
+  owner       User          @relation(fields: [ownerId], references: [id])
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  attendees EventAttendee[]
+
+  @@map("events")
+}
+
+/// Tracks which users are invited to an event and their RSVP status.
+model EventAttendee {
+  id        String         @id @default(cuid())
+  eventId   String         @map("event_id")
+  event     Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId    String         @map("user_id")
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// RSVP response from the attendee.
+  status    AttendeeStatus @default(PENDING)
+  createdAt DateTime       @default(now()) @map("created_at")
+  updatedAt DateTime       @updatedAt @map("updated_at")
+
+  @@unique([eventId, userId])
+  @@map("event_attendees")
 }
