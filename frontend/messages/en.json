@@ -92,7 +92,7 @@
     "color": "Color",
     "noCalendars": "No calendars yet.",
     "tileDesc": "Manage my calendars"
-  }
+  },
   "pages": {
     "dashboard": "Home",
     "calendar": "Calendar",
