@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import { useRef } from "react";
 import { Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -47,18 +47,17 @@ export function TimePicker({
     onChange?.(formatHHmm(parsed?.h ?? 0, m));
   };
 
-  const hourRef = React.useRef<HTMLDivElement>(null);
-  const minuteRef = React.useRef<HTMLDivElement>(null);
+  const hourRef = useRef<HTMLDivElement>(null);
+  const minuteRef = useRef<HTMLDivElement>(null);
 
-  // Scroll selected item into view when popover opens
-  const scrollToSelected = React.useCallback(() => {
+  function scrollToSelected() {
     if (parsed) {
       const hBtn = hourRef.current?.querySelector(`[data-hour="${parsed.h}"]`);
       const mBtn = minuteRef.current?.querySelector(`[data-min="${parsed.m}"]`);
       hBtn?.scrollIntoView({ block: "center" });
       mBtn?.scrollIntoView({ block: "center" });
     }
-  }, [parsed]);
+  }
 
   return (
     <Popover onOpenChange={(open) => { if (open) setTimeout(scrollToSelected, 50); }}>

@@ -33,7 +33,7 @@ export interface ListQuery {
   sortOrder?: "ASC" | "DESC";
 }
 
-function toQueryString(params: Record<string, unknown>): string {
+export function toQueryString(params: Record<string, unknown>): string {
   const q = new URLSearchParams();
   for (const [k, v] of Object.entries(params)) {
     if (v !== undefined && v !== "") q.set(k, String(v));

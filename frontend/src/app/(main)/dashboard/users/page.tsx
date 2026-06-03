@@ -17,7 +17,6 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -26,6 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { TableSkeleton } from "@/components/ui/table-skeleton";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { useTranslations } from "@/i18n/provider";
 import { type User, usersApi } from "@/lib/api";
@@ -34,31 +34,6 @@ import { DeleteUserDialog } from "./_components/delete-user-dialog";
 import { EditUserDialog } from "./_components/edit-user-dialog";
 
 const PAGE_SIZE = 20;
-
-function TableSkeleton({ cols }: { cols: number }) {
-  return (
-    <div className="rounded-lg border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            {Array.from({ length: cols }).map((_, i) => (
-              <TableHead key={i}><Skeleton className="h-4 w-20" /></TableHead>
-            ))}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {Array.from({ length: 5 }).map((_, i) => (
-            <TableRow key={i}>
-              {Array.from({ length: cols }).map((_, j) => (
-                <TableCell key={j}><Skeleton className="h-4 w-full" /></TableCell>
-              ))}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
-  );
-}
 
 export default function UsersPage() {
   const t = useTranslations("users");
