@@ -199,12 +199,49 @@ V2 與 V1 的差異：**沒有 multi-schema，沒有 `@@schema()`**，每個 app
 | 日期選擇 | `DatePicker`（`components/ui/date-picker.tsx`）|
 | 時間選擇 | `TimePicker`（`components/ui/time-picker.tsx`，24 小時制，HH:mm）|
 | 日期範圍 | `DateRangePicker`（`components/ui/date-range-picker.tsx`）|
-| 下拉選單 | `Select`（`components/ui/select.tsx`）|
+| 下拉選單（靜態 options）| `Select`（`components/ui/select.tsx`）|
+| 下拉選單（動態 options）| `AppSelect`（`components/ui/app-select.tsx`）|
 | 核取方塊 | `Checkbox`（`components/ui/checkbox.tsx`）|
 | 開關切換 | `Switch`（`components/ui/switch.tsx`）|
 | 多行文字 | `Textarea`（`components/ui/textarea.tsx`）|
 
 凡 `<input type="date">` 、`<select>`、`<input type="checkbox">` 等 HTML 原生控制項，都應替換為上表對應的 shadcn 元件以確保視覺一致性。
+
+**`Select` vs `AppSelect` 的選擇規則：**
+
+- **靜態 options**（inline 常數陣列，如性別、層級、關係）→ 用 `Select` + `<SelectValue />`
+- **動態 options**（從 API query 載入，如員工清單、部門清單）→ 一律用 `AppSelect`
+
+`AppSelect` 的原因：Radix UI 的 `<SelectValue />` 需要 `SelectItem` 在 context 裡 register 才能顯示 label；動態 options 載入時序不固定，用 `AppSelect` 可透過 `options.find()` 直接算出顯示文字，完全避開這個問題。
+
+```tsx
+// ✅ 靜態 options → Select
+<Select value={watch("gender")} onValueChange={(v) => setValue("gender", v)}>
+  <SelectTrigger><SelectValue /></SelectTrigger>
+  <SelectContent>
+    <SelectItem value="MALE">男</SelectItem>
+    <SelectItem value="FEMALE">女</SelectItem>
+  </SelectContent>
+</Select>
+
+// ✅ 動態 options（從 API 載入）→ AppSelect
+const employeeOptions = employees.map(e => ({ value: e.id, label: `${e.employeeNumber} — ${e.name}` }));
+
+<AppSelect
+  value={watch("employeeId") || null}
+  onValueChange={(v) => setValue("employeeId", v ?? "")}
+  options={employeeOptions}
+  placeholder="選擇員工"
+/>
+
+// nullable（可清空）→ 加 nullable prop
+<AppSelect
+  value={watch("headId") ?? null}
+  onValueChange={(v) => setValue("headId", v)}
+  options={headOptions}
+  nullable
+/>
+```
 
 ---
 
