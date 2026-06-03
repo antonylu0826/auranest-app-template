@@ -232,17 +232,25 @@ V2 與 V1 的差異：**沒有 multi-schema，沒有 `@@schema()`**，每個 app
 
 ```prisma
 // backend/prisma/schema.prisma
-enum MyStatus { ACTIVE INACTIVE }
 
+/// Brief English description of what this enum represents.
+enum MyStatus {
+  ACTIVE   // optional per-value doc
+  INACTIVE
+}
+
+/// English description of the model and its business purpose.
 model MyModel {
   id        String    @id @default(cuid())
+  /// Field-level description: business meaning, constraints, examples.
   name      String
-  // ...
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
   @@map("my_models")
 }
 ```
+
+> **`///` doc comments are mandatory** — they feed into three AI-agent metadata layers (see *AI Agent Metadata* section below).
 
 > ⚠️ **停掉 dev server** 再執行 generate / migrate（避免 Windows DLL 鎖定）
 
@@ -328,6 +336,55 @@ frontend/src/app/(main)/dashboard/my-module/
 ```bash
 npx tsc --noEmit   # 前後端都要確認無型別錯誤再 commit
 ```
+
+---
+
+## AI Agent Metadata
+
+Three layers expose schema knowledge to AI agents. **All descriptions must be in English** to minimise token usage.
+
+### Layer 1 — Prisma `///` doc comments (source of truth)
+
+Write `///` above every enum, model, and non-obvious field. Use single-line English sentences.
+
+```prisma
+/// Brief description of the enum's business purpose.
+enum EmploymentStatus {
+  ACTIVE      // currently employed
+  RESIGNED    // voluntary separation
+}
+
+/// Description of the model and its role in the domain.
+model EmployeeProfile {
+  /// Company-assigned ID, e.g. "EMP-001". Must be unique.
+  employeeNumber String @unique @map("employee_number")
+}
+```
+
+### Layer 2 — `GET /meta/schema` (runtime)
+
+Returns a JSON payload of all models + fields + enum values with their `///` documentation.
+Requires `Authorization: Bearer <ADMIN token>`.
+
+```json
+{
+  "generatedAt": "...",
+  "models": [{ "name": "EmployeeProfile", "documentation": "...", "fields": [...] }],
+  "enums":  [{ "name": "EmploymentStatus", "documentation": "...", "values": [...] }]
+}
+```
+
+AI agents running at runtime can `GET /meta/schema` to self-orient before querying data.
+
+### Layer 3 — `docs/data-dictionary.md` (design-time)
+
+Auto-generated Markdown consumed by AI agents during design or code-review sessions.
+
+```bash
+pnpm -C backend schema:docs   # regenerate after any schema change
+```
+
+**Workflow rule:** After every `prisma migrate dev`, run `schema:docs` and commit the updated `docs/data-dictionary.md` together with the migration.
 
 ---
 
