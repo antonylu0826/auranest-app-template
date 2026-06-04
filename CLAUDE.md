@@ -28,20 +28,29 @@ backend/                    NestJS 11 + Prisma 6
         local.strategy.ts   AUTH_MODE=local：HS256 JWT（payload: sub/email/name/role）
         oidc.strategy.ts    AUTH_MODE=oidc：JWKS 驗 token
       guards/
-        jwt.guard.ts        JwtAuthGuard — 驗 Bearer token
-        roles.guard.ts      RolesGuard — 依 JWT role 檢查權限層級
+        jwt.guard.ts              JwtAuthGuard — 驗 Bearer token
+        jwt-or-api-key.guard.ts   JwtOrApiKeyGuard — composite guard，API key 優先，fallback JWT
+        roles.guard.ts            RolesGuard — 依 JWT role 檢查權限層級
+        scope.guard.ts            ScopeGuard — 依 @Scopes() decorator 限制 API key 存取範圍
       decorators/
         roles.decorator.ts  @Roles(UserRole.ADMIN) 裝飾器
+        scopes.decorator.ts @Scopes("users:read") 裝飾器（僅限制 API key，JWT user 直接放行）
       auth.module.ts        根據 AUTH_MODE 動態掛 strategy + controller
       auth.controller.ts    只在 local 模式：POST /auth/register、/auth/login、GET /auth/me
     users/
       users.controller.ts   CRUD /users（全需 ADMIN）
       users.service.ts      findAll/findById/create/update/updateRole/remove
       dto/user.dto.ts       CreateUserDto、UpdateUserDto、UpdateRoleDto
+    api-keys/
+      api-key.guard.ts            ApiKeyGuard — 驗 X-Api-Key header，hash 比對，rate limit
+      api-key-rate-limiter.ts     in-memory per-key rate limiter（預設 60 req/min，含 TTL eviction）
+      api-keys.service.ts         key 生成（an_live_ 前綴）、CRUD、scope 驗證
+      api-keys.controller.ts      POST/GET/PATCH/DELETE /api-keys（全部需要 JWT ADMIN）
+      dto/api-key.dto.ts          CreateApiKeyDto、UpdateApiKeyDto、CreateApiKeyResponse
     prisma/                 PrismaService（Global）
     common/filters/         GlobalExceptionFilter（統一 error shape）
     health/                 GET /health（Terminus）
-  prisma/schema.prisma      User model（含 UserRole enum: ADMIN/USER）
+  prisma/schema.prisma      User model + ApiKey model（含 UserRole enum: ADMIN/USER）
   prisma/seed.ts            建立預設 ADMIN 帳號（讀 SEED_USER_* env vars，upsert 不重複）
 
 frontend/                   Next.js 16 + Tailwind v4 + shadcn/ui
@@ -121,6 +130,46 @@ OIDC_AUDIENCE=account
 
 `local` 模式：backend 提供 `/auth/register` `/auth/login`，frontend 顯示表單。
 `oidc` 模式：backend 只驗 JWKS，不掛 AuthController；frontend 顯示 SSO 按鈕。
+
+---
+
+## API Key（M2M）
+
+供 n8n、AI Agent 等第三方系統使用，不依賴 JWT session。
+
+**認證方式：** `X-Api-Key: an_live_<hex>` header  
+**Guard 鏈：** `JwtOrApiKeyGuard`（API key 優先，fallback JWT）→ `RolesGuard` → `ScopeGuard`
+
+**Key 設計：**
+- 格式：`an_live_<32位 hex>`，DB 只存 SHA-256 hash
+- `role: ADMIN | USER`：認證時注入等效 user context
+- `scopes: string[]`：模組層級，e.g. `["users:read", "employees:*"]`。`"*"` 全放行
+- `rateLimit`：per-key，預設 60 req/min（in-memory）
+- `createdBy`：建立者 email snapshot，純字串，無 FK
+
+**Scope 規則（ScopeGuard）：**
+- 無 `@Scopes()` decorator → 放行
+- JWT user → 放行（scope 只限制 API key）
+- API key + `*` → 放行；`x:*` match `x:read`/`x:write`；不符合 → 403
+
+**Controller 新增 scope 限制範例：**
+
+```ts
+@Get()
+@Scopes("employees:read")
+findAll() { ... }
+```
+
+**管理 endpoint（全部需要 JWT ADMIN）：**
+```
+POST   /api-keys
+GET    /api-keys
+GET    /api-keys/:id
+PATCH  /api-keys/:id
+DELETE /api-keys/:id
+```
+
+**Fork 後注意：** Key 前綴 `an_live_` 可依 app 修改（在 `api-keys.service.ts` 的 `KEY_PREFIX` 常數）。
 
 ---
 
@@ -448,17 +497,19 @@ model EmployeeProfile {
 ### Layer 2 — `GET /meta/schema` (runtime)
 
 Returns a JSON payload of all models + fields + enum values with their `///` documentation.
-Requires `Authorization: Bearer <ADMIN token>`.
+Requires `Authorization: Bearer <ADMIN token>` **or** an `X-Api-Key` with ADMIN role.
 
 ```json
 {
   "generatedAt": "...",
   "models": [{ "name": "EmployeeProfile", "documentation": "...", "fields": [...] }],
-  "enums":  [{ "name": "EmploymentStatus", "documentation": "...", "values": [...] }]
+  "enums":  [{ "name": "EmploymentStatus", "documentation": "...", "values": [...] }],
+  "availableScopes": ["users:read", "users:write", "users:*", "employees:read", ...]
 }
 ```
 
-AI agents running at runtime can `GET /meta/schema` to self-orient before querying data.
+`availableScopes` 從 `Prisma.dmmf` 動態推導（`{dbTable}:read|write|*`），`@internal` model 自動排除。
+AI agents 可呼叫此 endpoint 取得 schema 結構與合法 API key scope 清單。
 
 ### Layer 3 — `docs/data-dictionary.md` (design-time)
 

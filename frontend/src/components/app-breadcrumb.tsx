@@ -13,11 +13,15 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 
-const TRANSLATABLE_SEGMENTS = ["dashboard", "users", "home"] as const;
-type TranslatableSegment = (typeof TRANSLATABLE_SEGMENTS)[number];
+const SEGMENT_KEY_MAP: Record<string, string> = {
+  dashboard: "dashboard",
+  users: "users",
+  home: "home",
+  "api-keys": "apiKeys",
+};
 
-function isTranslatable(s: string): s is TranslatableSegment {
-  return TRANSLATABLE_SEGMENTS.includes(s as TranslatableSegment);
+function isTranslatable(s: string): boolean {
+  return s in SEGMENT_KEY_MAP;
 }
 
 export function AppBreadcrumb() {
@@ -26,7 +30,7 @@ export function AppBreadcrumb() {
 
   const segments = pathname.split("/").filter(Boolean);
   const crumbs = segments.map((seg, i) => ({
-    label: isTranslatable(seg) ? t(seg) : seg,
+    label: isTranslatable(seg) ? t(SEGMENT_KEY_MAP[seg] as Parameters<typeof t>[0]) : seg,
     href: "/" + segments.slice(0, i + 1).join("/"),
     isLast: i === segments.length - 1,
   }));

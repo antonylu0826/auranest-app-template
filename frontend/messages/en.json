@@ -34,7 +34,8 @@
   "sidebar": {
     "home": "Home",
     "admin": "Admin",
-    "users": "Users"
+    "users": "Users",
+    "apiKeys": "API Keys"
   },
   "welcome": {
     "greeting": "Welcome back",
@@ -43,7 +44,8 @@
   },
   "pages": {
     "dashboard": "Home",
-    "users": "Users"
+    "users": "Users",
+    "apiKeys": "API Keys"
   },
   "users": {
     "title": "Users",
@@ -70,6 +72,35 @@
     "roles": {
       "ADMIN": "Admin",
       "USER": "User"
+    }
+  },
+  "apiKeys": {
+    "title": "API Key Management",
+    "newKey": "Create key",
+    "searchPlaceholder": "Search by name…",
+    "noItems": "No API keys found.",
+    "keyCreatedOnce": "This key is shown only once. Copy and store it securely.",
+    "copyKey": "Copy key",
+    "copied": "Copied",
+    "fields": {
+      "name": "Name",
+      "role": "Permission level",
+      "scopes": "Access scopes",
+      "rateLimit": "Rate limit (req/min)",
+      "expiresAt": "Expires at",
+      "isActive": "Active",
+      "prefix": "Key prefix",
+      "createdBy": "Created by",
+      "lastUsedAt": "Last used",
+      "createdAt": "Created"
+    },
+    "rateLimit": {
+      "default": "Default (60/min)",
+      "custom": "Custom"
+    },
+    "actions": {
+      "revoke": "Revoke",
+      "revokeConfirm": "Are you sure you want to revoke this key? This action cannot be undone."
     }
   }
 }
