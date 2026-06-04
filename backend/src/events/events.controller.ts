@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/guards/jwt.guard';
+import { JwtOrApiKeyGuard } from '../auth/guards/jwt-or-api-key.guard';
 import { CurrentUser, type JwtPayload } from '../auth/decorators/current-user.decorator';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { EventsService } from './events.service';
@@ -13,7 +13,7 @@ import {
 } from './dto/event.dto';
 
 @Controller('events')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtOrApiKeyGuard)
 export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
 

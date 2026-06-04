@@ -1,4 +1,4 @@
-import { type LucideIcon, Home, Users, CalendarDays, List } from "lucide-react";
+import { type LucideIcon, Home, Users, CalendarDays, List, KeyRound } from "lucide-react";
 
 export interface NavSubItem {
   title: string;
@@ -63,6 +63,12 @@ export const sidebarItems: NavGroup[] = [
         title: "users",
         url: "/dashboard/users",
         icon: Users,
+        adminOnly: true,
+      },
+      {
+        title: "apiKeys",
+        url: "/dashboard/api-keys",
+        icon: KeyRound,
         adminOnly: true,
       },
     ],
