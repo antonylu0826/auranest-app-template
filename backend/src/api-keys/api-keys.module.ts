@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { MetaModule } from '../meta/meta.module';
 import { ApiKeyRateLimiter } from './api-key-rate-limiter';
 import { ApiKeyGuard } from './api-key.guard';
@@ -8,7 +8,7 @@ import { JwtOrApiKeyGuard } from '../auth/guards/jwt-or-api-key.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 
 @Module({
-  imports: [MetaModule],
+  imports: [forwardRef(() => MetaModule)],
   controllers: [ApiKeysController],
   providers: [ApiKeysService, ApiKeyGuard, ApiKeyRateLimiter, JwtOrApiKeyGuard, JwtAuthGuard],
   exports: [ApiKeyGuard, ApiKeyRateLimiter, JwtOrApiKeyGuard, JwtAuthGuard],
