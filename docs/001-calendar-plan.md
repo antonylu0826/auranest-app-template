@@ -25,9 +25,9 @@ V2 去除跨 app 整合的複雜性，專注做一個功能完整的獨立行事
 |---|---|
 | Backend | NestJS 11 · Prisma 6 · PostgreSQL · TypeScript 5.7 · pnpm 11 |
 | Frontend | Next.js 16 · Tailwind CSS v4 · shadcn/ui · TanStack Query |
-| 行事曆 UI | **FullCalendar React**（`@fullcalendar/react` + dayGrid / timeGrid / list / interaction） |
+| 行事曆 UI | **FullCalendar React**（`@fullcalendar/react` + dayGrid / timeGrid / interaction） |
 | 週期規則 | **rrule**（npm）+ **date-fns-tz**（時區，比 luxon 輕量）|
-| iCal | **ical-generator**（後端匯出 RFC 5545）|
+| iCal | **ical-generator**（後端匯出 RFC 5545）— Phase D |
 | Auth | 沿用 template：local JWT（HS256）或 OIDC（JWKS） |
 | Ports | Backend `:3020` · Frontend `:3021` |
 
@@ -37,20 +37,20 @@ V2 去除跨 app 整合的複雜性，專注做一個功能完整的獨立行事
 
 ### In Scope（V2）
 
-| # | 功能 | 對應 Phase |
-|---|---|---|
-| 1 | 個人行事曆 CRUD（建立、顏色、顯示/隱藏、刪除） | A |
-| 2 | 事件 CRUD（標題、時間、全天、地點、說明、顏色） | A |
-| 3 | FullCalendar 月 / 週 / 日 / 清單四視圖 | A |
-| 4 | Sidebar 行事曆列表 + 顯示/隱藏切換 | A |
-| 5 | 拖曳移動事件、調整時間（FullCalendar editable） | A |
-| 6 | 週期性事件（RRULE daily/weekly/monthly/yearly） | B |
-| 7 | 週期事件 scope-aware 編輯/刪除（THIS / FUTURE / ALL） | B |
-| 8 | RruleBuilder UI | B |
-| 9 | 行事曆分享（CalendarMember OWNER/EDITOR/VIEWER） | C |
-| 10 | 事件邀請 + RSVP（PENDING/ACCEPTED/TENTATIVE/DECLINED） | C |
-| 11 | Free/Busy 查詢（建事件時顯示衝突） | C |
-| 12 | 邀請收件箱 | C |
+| # | 功能 | 對應 Phase | 狀態 |
+|---|---|---|---|
+| 1 | 個人行事曆 CRUD（建立、顏色、顯示/隱藏、刪除） | A | ✅ 完成 |
+| 2 | 事件 CRUD（標題、時間、全天、地點、說明、顏色） | A | ✅ 完成 |
+| 3 | FullCalendar 月 / 週 / 日三視圖 | A | ✅ 完成 |
+| 4 | Sidebar 行事曆列表 + 顯示/隱藏切換 | A | ✅ 完成 |
+| 5 | 拖曳移動事件、調整時間（FullCalendar editable） | A | ✅ 完成 |
+| 6 | 週期性事件（RRULE daily/weekly/monthly/yearly） | B | ✅ 完成 |
+| 7 | 週期事件 scope-aware 編輯/刪除（THIS / FUTURE / ALL） | B | ✅ 完成 |
+| 8 | RruleBuilder UI | B | ✅ 完成 |
+| 9 | 行事曆分享（CalendarMember OWNER/EDITOR/VIEWER） | C | 未開始 |
+| 10 | 事件邀請 + RSVP（PENDING/ACCEPTED/TENTATIVE/DECLINED） | C | 未開始 |
+| 11 | Free/Busy 查詢（建事件時顯示衝突） | C | 未開始 |
+| 12 | 邀請收件箱 | C | 未開始 |
 
 ### Out of Scope（V2 不做）
 
@@ -76,7 +76,7 @@ enum CalendarColor { BLUE GREEN RED YELLOW PURPLE PINK TEAL GRAY }
 enum AttendeeStatus { PENDING ACCEPTED DECLINED TENTATIVE }
 ```
 
-### Phase A 新增（Schema 擴充）
+### Phase A 新增（已套用）
 
 ```prisma
 /// Calendar ownership type.
@@ -105,12 +105,9 @@ enum EventPrivacy {
   PUBLIC   // visible to anyone with calendar access
   PRIVATE  // title hidden from non-attendees
 }
-
-/// Who the calendar belongs to is controlled by Calendar.ownerId (existing).
-/// Add CalendarType to Calendar model.
 ```
 
-### Phase B 新增（週期事件欄位）
+### Phase B 新增（已套用）
 
 Event model 補充欄位：
 - `timezone String` — IANA tz（必填，e.g. `Asia/Taipei`）
@@ -145,7 +142,7 @@ model CalendarMember {
 
 ## API 端點規劃
 
-### Phase A — 基礎 CRUD
+### Phase A — 基礎 CRUD（已完成）
 
 ```
 # Calendars
@@ -163,7 +160,7 @@ PATCH  /events/:id                        # 更新事件
 DELETE /events/:id                        # 刪除事件
 ```
 
-### Phase B 補充（週期）
+### Phase B 補充（已完成）
 
 ```
 PATCH  /events/:id?scope=THIS_ONLY|THIS_AND_FOLLOWING|ALL
@@ -189,9 +186,7 @@ GET    /freebusy?userIds=&start=&end=     # 忙碌時段查詢
 
 ---
 
-## 週期事件策略（Phase B）
-
-移植自 V0 已驗證的設計，針對 V2 微調：
+## 週期事件策略（Phase B — 已實作）
 
 ### 儲存方式
 
@@ -222,7 +217,7 @@ GET    /freebusy?userIds=&start=&end=     # 忙碌時段查詢
 4. 替換 overrides、移除 cancellations
 5. 合併非週期事件，依 startAt 排序回傳
 
-時區處理：使用 `date-fns-tz` 在 event.timezone 正確展開（處理 DST 邊界）
+時區處理：使用 `date-fns-tz` floating datetime 方式（local time components stored as UTC）在 event.timezone 正確展開，處理 DST 邊界。
 
 ---
 
@@ -232,90 +227,46 @@ GET    /freebusy?userIds=&start=&end=     # 忙碌時段查詢
 ┌───────────────────┬──────────────────────────────────────────┐
 │  Left Sidebar     │  FullCalendar 主視圖                       │
 │                   │                                            │
-│  ▾ 我的行事曆     │  ◀  2026年6月  ▶    [月][週][日][清單]    │
+│  ▾ 我的行事曆     │  ◀  2026年6月  ▶    [月][週][日]           │
 │    ● 個人          │                                            │
 │    ● 工作          │  一  二  三  四  五  六  日                 │
-│    ● 家庭          │  ...                                       │
-│                   │  [事件 chip]                                │
-│  ▾ 共享行事曆     │                                            │
-│    ○ 工程團隊     │  ────── 點擊事件 ─────────────────────── │
-│                   │  EventDetailPopover（非 modal 浮動卡片）   │
-│  [+ 建立行事曆]   │    標題 / 時間 / 地點 / 出席者             │
-│                   │    [編輯] [刪除] [RSVP]                    │
+│                   │  ...                                       │
+│  [+ 建立行事曆]   │  [事件 chip]（可拖曳）                     │
+│                   │                                            │
+│  小月曆（mini）   │  ────── 點擊事件 ─────────────────────── │
+│                   │  EventDetailDialog（點擊後浮現）            │
+│                   │    標題 / 時間 / 地點 / 說明 / 週期標記    │
+│                   │    [編輯] [刪除]                            │
 └───────────────────┴──────────────────────────────────────────┘
 ```
 
-### 頁面結構
+### 頁面結構（實際）
 
 ```
 frontend/src/app/(main)/dashboard/
   calendar/
-    page.tsx                    # 主行事曆視圖（FullCalendar）
+    page.tsx                       # 主行事曆視圖（FullCalendar）
     _components/
-      calendar-view.tsx         # FullCalendar 包裝
-      calendar-toolbar.tsx      # 今天 / 上下 / 視圖切換 / 新增按鈕
-      calendar-sidebar.tsx      # 行事曆列表 + 顏色 + 顯示切換
-      event-detail-popover.tsx  # 點擊事件浮現的詳情卡片
-      event-form-modal.tsx      # 建立/編輯事件 Dialog
-      rrule-builder.tsx         # 週期設定 UI（Phase B）
-      recurrence-scope-dialog.tsx # 刪/改週期事件的 scope 選擇（Phase B）
+      calendar-sidebar.tsx         # 小月曆 + 行事曆列表 + 顏色 + 顯示切換
+      event-detail-dialog.tsx      # 點擊事件後的詳情 Dialog
+      event-form-modal.tsx         # 建立/編輯事件 Dialog（含 RruleBuilder）
+      rrule-builder.tsx            # 週期設定 UI
+      recurrence-scope-dialog.tsx  # 刪/改週期事件的 scope 選擇
   events/
-    page.tsx                    # 事件列表管理頁（TanStack Table）
-    _components/
-      create-event-dialog.tsx
-      edit-event-dialog.tsx
-      delete-event-dialog.tsx
-  calendar/inbox/
-    page.tsx                    # 待回覆邀請（Phase C）
+    page.tsx                       # 事件列表管理頁（依月份分組）
 ```
 
 ---
 
 ## 分期計畫
 
-### Phase A — 基礎 CRUD + FullCalendar UI
+### Phase A — 基礎 CRUD + FullCalendar UI ✅ 已完成
 
-**目標**：月曆可以用，基本事件建立/編輯/刪除
+後端 CalendarsModule、EventsModule CRUD；FullCalendar 月/週/日視圖；Sidebar；EventDetailDialog；EventFormModal；拖曳移動/調整；Events 列表頁。
 
-Backend：
-- 擴充 Schema（加 `CalendarType`、`EventStatus`、`EventPrivacy` enum）
-- `CalendarsModule`：CRUD + 使用者首次登入自動建立預設個人行事曆
-- `EventsModule`：CRUD（非週期）；`GET /events?start=&end=&calendarIds=` 回時間範圍內事件
-- 驗證：只有行事曆 owner 才能刪除；只有 member（EDITOR 以上）才能建/改事件
+### Phase B — 週期事件 ✅ 已完成
 
-Frontend：
-- 安裝 `@fullcalendar/react` 及相關 plugins、`@fullcalendar/interaction`
-- `CalendarView` 包裝（月/週/日/清單四視圖）
-- `CalendarSidebar`（行事曆列表、顏色圓點、checkbox 切顯示/隱藏）
-- `EventDetailPopover`（點擊事件後浮現，非 modal）
-- `EventFormModal`（建立/編輯，RHF + Zod）
-- 拖曳移動/調整時間（`editable=true`，`eventDrop` / `eventResize` 觸發 PATCH）
-- Sidebar FullCalendar 小月曆（mini calendar，點選日期跳轉）
-
-驗收：
-- 建立一個「個人」行事曆 + 三個事件 → 月曆正確顯示
-- 拖曳移動事件 → DB 時間更新
-- 勾掉行事曆 → 事件消失
-
-### Phase B — 週期事件
-
-**目標**：可建立週期事件；編輯/刪除三種 scope 走通
-
-Backend：
-- Schema 補 `timezone`、`recurringEventId`、`originalStartAt`、`isCancelled` 欄位
-- `ExpansionService`（移植 V0 `recurrence.util.ts`，改用 `date-fns-tz`）
-- `GET /events` 整合 expansion；occurrence id 格式 `<masterId>__<ISO>`
-- `PATCH/DELETE` scope-aware 邏輯
-
-Frontend：
-- `RruleBuilder` UI（頻率 / 間隔 / 星期幾 / 結束條件 / 預覽下 5 次）
-- `RecurrenceScopeDialog`（刪/改時詢問：僅此次 / 此後所有 / 全部）
-- EventFormModal 加週期設定 section
-
-驗收：
-- 建「每週一三五 10:00」→ 月曆展開正確
-- 修改「僅此次」→ 只有該次變動，其他不變
-- 刪除「此後所有」→ 指定日後全消
+Schema 補週期欄位；ExpansionService RRULE 展開（floating datetime + date-fns-tz）；scope-aware PATCH/DELETE；RruleBuilder UI；RecurrenceScopeDialog；拖曳週期事件時的 scope 選擇。
 
 ### Phase C — 行事曆分享 & 出席者 RSVP
 
@@ -330,7 +281,7 @@ Backend：
 
 Frontend：
 - `EventFormModal` 加出席者搜尋選擇（從系統 User 列表）
-- `EventDetailPopover` 加 RSVP 按鈕 + 出席者列表
+- `EventDetailDialog` 加 RSVP 按鈕 + 出席者列表
 - `/dashboard/calendar/inbox` 頁面
 - 建事件時若選了 attendees 且有時段衝突 → 顯示警告
 
@@ -348,38 +299,39 @@ Frontend：
 | 決策 | 說明 |
 |---|---|
 | **RRULE 後端展開** | 客戶端不需要處理複雜時區計算；V0 已驗證，效能足夠（1 年範圍 < 100ms）|
-| **Occurrence ID 格式** | `<masterId>__<ISO8601UTC>`；前端辨識 override 用；`__` 作分隔避免 id 碰撞 |
+| **Floating datetime** | rrule.js 用 floating dates（local time stored as UTC）。`toFloating(utcDate, tz)` 轉換後展開，`fromFloating(floatingDate, tz)` 還原真實 UTC |
+| **Occurrence ID 格式** | `<masterId>__<UTC ISO8601>`；前端辨識 override 用；`__` 作分隔避免 id 碰撞 |
 | **時區庫** | `date-fns-tz`（不用 luxon）— 更輕量，Next.js 友好 |
-| **FullCalendar eventSourceFunc** | 每次 range 變動重打 API（不在前端快取 occurrence）|
-| **Sidebar 可見性** | localStorage + `PATCH /calendars/:id`（isVisible）debounce 同步 |
-| **不做 Socket.io** | TanStack Query `refetchInterval` + 手動 invalidate 取代；V2 standalone 不需要複雜 WS |
+| **EventDetailDialog vs Popover** | 實作為 Dialog（shadcn Dialog）而非 Popover，行動裝置體驗更好 |
+| **不做 Socket.io** | TanStack Query `invalidateQueries` + 手動 refetch 取代；V2 standalone 不需要複雜 WS |
 | **`CalendarColor` enum** | 預定義 8 色（V2 簡化版，V0 用 hex string）|
+| **FullCalendar 樣式橋接** | `globals.css` 加 CSS override，全部參照 shadcn CSS variables（`--primary`、`--border`、`--muted` 等），dark mode 自動適配 |
 
 ---
 
-## 依賴套件
+## 依賴套件（已安裝）
 
-### Backend 新增
+### Backend
 
 ```json
 {
   "rrule": "^2.8.x",
-  "date-fns-tz": "^3.x",
-  "ical-generator": "^8.x"
+  "date-fns": "^4.x",
+  "date-fns-tz": "^3.x"
 }
 ```
 
-### Frontend 新增
+### Frontend
 
 ```json
 {
-  "@fullcalendar/react": "^6.x",
-  "@fullcalendar/core": "^6.x",
-  "@fullcalendar/daygrid": "^6.x",
-  "@fullcalendar/timegrid": "^6.x",
-  "@fullcalendar/list": "^6.x",
-  "@fullcalendar/interaction": "^6.x",
-  "rrule": "^2.8.x"
+  "@fullcalendar/react": "^6.1.20",
+  "@fullcalendar/core": "^6.1.20",
+  "@fullcalendar/daygrid": "^6.1.20",
+  "@fullcalendar/timegrid": "^6.1.20",
+  "@fullcalendar/interaction": "^6.1.20",
+  "rrule": "^2.8.x",
+  "date-fns-tz": "^3.x"
 }
 ```
 
@@ -387,13 +339,15 @@ Frontend：
 
 ## 驗收標準
 
-| 項目 | 驗收條件 |
-|---|---|
-| 個人行事曆 | 首次登入自動建立預設行事曆；CRUD 正常 |
-| FullCalendar 視圖 | 月/週/日/清單四視圖切換流暢；事件正確顯示 |
-| 拖曳 | 移動事件 + 調整時間後 DB 正確更新；失敗自動 revert |
-| 週期事件 | 每週事件展開正確；DST 切換週不出錯 |
-| Scope 編輯 | 三種 scope 行為符合預期；UI 不讓使用者誤操作 |
-| 行事曆分享 | 受邀成員可看到 / 編輯（依角色）該行事曆的事件 |
-| RSVP | 出席者可回覆；狀態正確反映在事件詳情 |
-| 型別安全 | `pnpm typecheck` 前後端皆通過 |
+| 項目 | 驗收條件 | 狀態 |
+|---|---|---|
+| 個人行事曆 | 首次登入自動建立預設行事曆；CRUD 正常 | ✅ |
+| FullCalendar 視圖 | 月/週/日視圖切換流暢；事件正確顯示 | ✅ |
+| 拖曳 | 移動事件 + 調整時間後 DB 正確更新；失敗自動 revert | ✅ |
+| 週期事件 | 每週事件展開正確；DST 切換週不出錯 | ✅ |
+| Scope 編輯 | 三種 scope 行為符合預期；UI 不讓使用者誤操作 | ✅ |
+| 週期事件拖曳 | 拖曳/resize 週期事件時彈出 scope 選擇 | ✅ |
+| shadcn 整合 | 月曆外觀（按鈕/邊框/顏色）與 shadcn theme 一致 | ✅ |
+| 行事曆分享 | 受邀成員可看到 / 編輯（依角色）該行事曆的事件 | 待 Phase C |
+| RSVP | 出席者可回覆；狀態正確反映在事件詳情 | 待 Phase C |
+| 型別安全 | `pnpm typecheck` 前後端皆通過 | ✅ |

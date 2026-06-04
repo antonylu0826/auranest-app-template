@@ -80,6 +80,49 @@
       "TENTATIVE": "暫定"
     }
   },
+  "recurrence": {
+    "section": "重複",
+    "recurringEvent": "週期活動",
+    "frequency": "頻率",
+    "every": "每",
+    "end": "結束",
+    "freq": {
+      "none": "不重複",
+      "daily": "每天",
+      "weekly": "每週",
+      "monthly": "每月",
+      "yearly": "每年"
+    },
+    "unit": {
+      "daily": "天",
+      "weekly": "週",
+      "monthly": "月",
+      "yearly": "年"
+    },
+    "endType": {
+      "never": "永不",
+      "until": "到日期",
+      "count": "共幾次"
+    },
+    "untilPlaceholder": "選擇結束日期",
+    "times": "次",
+    "monthDayPrefix": "每月第",
+    "monthDaySuffix": "天",
+    "previewHeader": "接下來 {count} 次：",
+    "editTitle": "編輯週期活動",
+    "deleteTitle": "刪除週期活動",
+    "editQuestion": "要修改哪些活動？",
+    "deleteQuestion": "要刪除哪些活動？",
+    "continueEdit": "繼續編輯",
+    "scope": {
+      "THIS_ONLY": "僅此次",
+      "THIS_AND_FOLLOWING": "此後所有",
+      "ALL": "全部",
+      "thisOnlyDesc": "只修改這一次的活動",
+      "thisAndFollowingDesc": "修改這次及之後的所有活動",
+      "allDesc": "修改系列中所有活動"
+    }
+  },
   "calendars": {
     "title": "行事曆",
     "newCalendar": "新增行事曆",

@@ -35,6 +35,26 @@ model User {
   @@map("users")
 }
 
+/// Ownership type of a calendar.
+enum CalendarType {
+  PERSONAL // private calendar owned by one user
+  SHARED   // explicitly shared with selected members via CalendarMember
+}
+
+/// Confirmation status of an event.
+enum EventStatus {
+  CONFIRMED  // event is confirmed and will happen
+  TENTATIVE  // event is tentative, may change
+  CANCELLED  // event has been cancelled
+}
+
+/// Visibility of event details to non-attendees.
+enum EventPrivacy {
+  DEFAULT  // inherits calendar default visibility
+  PUBLIC   // title and details visible to all calendar members
+  PRIVATE  // title hidden from non-attendees (shows as "Busy")
+}
+
 /// Display color for a calendar or event. Stored as a hex color string (e.g. "#4285F4").
 enum CalendarColor {
   BLUE    // #4285F4 — Google Calendar default blue
@@ -62,11 +82,13 @@ model Calendar {
   name        String
   /// Optional description of the calendar's purpose.
   description String?
+  /// Whether this is a private personal calendar or a shared one.
+  type        CalendarType  @default(PERSONAL)
   /// Display color used in the UI for this calendar's events.
   color       CalendarColor @default(BLUE)
   /// Whether this calendar is visible in the UI by default.
   isVisible   Boolean       @default(true) @map("is_visible")
-  /// Whether this is the user's primary (default) calendar; only one per user.
+  /// The user's primary calendar; auto-created on first login. Cannot be deleted.
   isPrimary   Boolean       @default(false) @map("is_primary")
   ownerId     String        @map("owner_id")
   owner       User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
@@ -87,14 +109,26 @@ model Event {
   description String?
   /// Physical or virtual location of the event.
   location    String?
+  /// IANA timezone name for this event, e.g. "Asia/Taipei". Used for RRULE expansion.
+  timezone    String        @default("Asia/Taipei")
   /// Event start date-time (UTC). For all-day events this is midnight UTC of the start date.
   startAt     DateTime      @map("start_at")
   /// Event end date-time (UTC). For all-day events this is midnight UTC of the day after the last day.
   endAt       DateTime      @map("end_at")
   /// When true, startAt/endAt represent dates only; time-of-day is ignored in the UI.
   isAllDay    Boolean       @default(false) @map("is_all_day")
+  /// Confirmation status of this event.
+  status      EventStatus   @default(CONFIRMED)
+  /// Visibility of event details to non-attendees.
+  privacy     EventPrivacy  @default(DEFAULT)
   /// Optional iCalendar RRULE string for recurring events (e.g. "FREQ=WEEKLY;BYDAY=MO,WE,FR").
   recurrenceRule String?    @map("recurrence_rule")
+  /// For a recurrence override or cancellation: points to the master event.
+  recurringEventId String?  @map("recurring_event_id")
+  /// For a recurrence override or cancellation: the original UTC start of the occurrence being replaced.
+  originalStartAt  DateTime? @map("original_start_at")
+  /// True when this row represents a cancelled occurrence of a recurring event (single-occurrence delete).
+  isCancelled Boolean       @default(false) @map("is_cancelled")
   /// Display color override; falls back to the parent calendar's color if null.
   color       CalendarColor?
   /// The calendar this event belongs to.
@@ -108,6 +142,8 @@ model Event {
 
   attendees EventAttendee[]
 
+  @@index([calendarId, startAt])
+  @@index([recurringEventId])
   @@map("events")
 }
 

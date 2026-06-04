@@ -80,6 +80,49 @@
       "TENTATIVE": "Tentative"
     }
   },
+  "recurrence": {
+    "section": "Repeat",
+    "recurringEvent": "Recurring event",
+    "frequency": "Frequency",
+    "every": "Every",
+    "end": "End",
+    "freq": {
+      "none": "Does not repeat",
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "yearly": "Yearly"
+    },
+    "unit": {
+      "daily": "day(s)",
+      "weekly": "week(s)",
+      "monthly": "month(s)",
+      "yearly": "year(s)"
+    },
+    "endType": {
+      "never": "Never",
+      "until": "On date",
+      "count": "After count"
+    },
+    "untilPlaceholder": "Pick an end date",
+    "times": "times",
+    "monthDayPrefix": "On day",
+    "monthDaySuffix": "of the month",
+    "previewHeader": "Next {count} occurrences:",
+    "editTitle": "Edit recurring event",
+    "deleteTitle": "Delete recurring event",
+    "editQuestion": "Which events do you want to edit?",
+    "deleteQuestion": "Which events do you want to delete?",
+    "continueEdit": "Continue editing",
+    "scope": {
+      "THIS_ONLY": "This event",
+      "THIS_AND_FOLLOWING": "This and following",
+      "ALL": "All events",
+      "thisOnlyDesc": "Only this occurrence",
+      "thisAndFollowingDesc": "This and all following occurrences",
+      "allDesc": "All events in the series"
+    }
+  },
   "calendars": {
     "title": "Calendars",
     "newCalendar": "New calendar",
