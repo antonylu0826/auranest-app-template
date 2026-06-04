@@ -466,9 +466,88 @@ useEffect(() => {
 
 > ⚠️ **`useEffect + reset` 配合 `defaultValues` prop 是危險反模式**：TanStack Query 在背景 refetch 後 data 產生新 reference，effect 重跑，會蓋掉使用者正在編輯的欄位。模式①②③都不需要這個寫法。
 
+### 7. TypeScript 驗證
+
+前後端都要通過，有錯要先修再繼續。
+
 ```bash
-npx tsc --noEmit   # 前後端都要確認無型別錯誤再 commit
+pnpm -C backend tsc --noEmit
+pnpm -C frontend tsc --noEmit
 ```
+
+### 8. 瀏覽器驗證
+
+啟動開發伺服器（若還沒跑的話）：
+
+```bash
+pnpm dev   # backend :PORT + frontend :FRONTEND_PORT（見 .env）
+```
+
+用 `/run` 讓 Claude 開啟瀏覽器逐一驗證：
+
+- **Golden path**：新增、列表、編輯、刪除的完整流程
+- **邊界情境**：空資料、欄位驗證錯誤、API 錯誤提示
+- **回歸確認**：確認現有功能（登入、Users 頁、API Keys 頁）未受影響
+
+> ⚠️ **瀏覽器 token 可能過期**：若出現 401 或 API 回傳 P2025（User not found），重新登入即可取得正確 token。JWT 的 `sub` 與 DB 的 User ID 不符時，通常是 DB re-seed 後 token 沒更新所致。
+
+### 9. Code Review
+
+用 `/code-review` 讓 Claude 以多角度掃描本次 diff，重點檢查：
+
+```
+/code-review
+```
+
+或用 Opus 做更深度審查（較慢但更全面）：
+
+```
+/code-review ultra
+```
+
+常見問題清單（優先確認）：
+- **IDOR**：每個 controller method 是否都驗證資源屬於當前 spaceId / userId
+- **Auth guard**：`@UseGuards(JwtAuthGuard)` 是否掛在 controller class 層級
+- **Fire-and-forget**：`void asyncFn()` 應改為 `.catch(err => console.error(...))`，避免錯誤消失
+- **Prisma N+1**：迴圈內有 `findUnique/findFirst` 時考慮改成 `findMany` + Map
+- **Direct dependency**：`main.ts` 或任何 source 直接 `require()` 的套件，必須在 `package.json` 宣告為 direct dependency（pnpm strict mode 不繼承 transitive deps）
+
+### 10. 修正 Review 問題
+
+逐一套用 review 找到的問題，每修完一批相關問題就再跑一次 typecheck 確認：
+
+```bash
+pnpm -C backend tsc --noEmit && pnpm -C frontend tsc --noEmit
+```
+
+### 11. Commit & Push
+
+Commit message 遵循 Conventional Commits，格式：
+
+```
+<type>(<scope>): <簡短描述>
+
+[選填：補充說明]
+```
+
+常用 type：
+- `feat` — 全新功能
+- `fix` — Bug 修正
+- `chore` — 非功能性調整（依賴、設定）
+- `refactor` — 重構（不影響行為）
+
+```bash
+git add <相關檔案>   # 不用 git add -A，避免意外加入 .env 或 binary
+git commit -m "feat(my-module): add CRUD for MyModel"
+git push
+```
+
+> **後端重啟注意**：若後端是從 `dist/` 直接執行（`node dist/src/main`），改完 source 後必須重新 build 再重啟：
+> ```bash
+> pnpm -C backend build   # 重新編譯
+> # 然後重啟後端 process
+> ```
+> 用 `pnpm -C backend dev`（`nest start --watch`）開發時不需手動 build，watch mode 會自動重新編譯。
 
 ---
 
