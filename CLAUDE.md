@@ -491,6 +491,8 @@ pnpm -C backend schema:docs   # regenerate after any schema change
 
 ## Quick Start
 
+**本地開發**
+
 ```bash
 cp .env.example .env          # 填 POSTGRES_PASSWORD、JWT_SECRET、SEED_USER_*
 
@@ -506,6 +508,16 @@ pnpm -C backend prisma:migrate   # 建立 schema
 pnpm -C backend prisma:seed      # 建立預設 ADMIN 帳號（SEED_USER_* 設定在根目錄 .env）
 pnpm dev                         # backend :3000 + frontend :3001
 ```
+
+**全端 Docker 部署**
+
+```bash
+cp .env.example .env          # 填 POSTGRES_PASSWORD、JWT_SECRET、SEED_USER_*
+docker compose up -d          # backend 啟動時自動執行 prisma migrate deploy
+docker compose exec backend node_modules/.bin/prisma db seed   # 建立預設 ADMIN 帳號（第一次）
+```
+
+> `prisma migrate deploy` 在 backend container 啟動時自動執行，不需手動操作。seed 只需第一次部署時跑一次。
 
 > **`.env` 的分工**
 > - 根目錄 `.env` — **唯一主要設定檔**，backend scripts 皆以 `dotenv -e ../.env` 讀取，不需要 `backend/.env`
