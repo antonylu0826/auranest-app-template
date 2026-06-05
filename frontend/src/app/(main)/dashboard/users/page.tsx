@@ -96,7 +96,7 @@ export default function UsersPage() {
         header: t("role"),
         enableSorting: false,
         cell: ({ row }) => (
-          <Badge variant="outline">{t(`roles.${row.original.role}`)}</Badge>
+          <Badge variant="outline">{row.original.role?.displayName ?? row.original.roleId}</Badge>
         ),
       },
       {

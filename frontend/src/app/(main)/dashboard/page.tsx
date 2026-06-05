@@ -34,7 +34,7 @@ export default function DashboardPage() {
   const tw = useTranslations("welcome");
   const tu = useTranslations("users");
   const currentUser = useCurrentUser();
-  const isAdmin = currentUser?.role === "ADMIN";
+  const isAdmin = currentUser?.roleName === "ADMIN";
 
   const visibleTiles = TILES.filter((tile) => !tile.adminOnly || isAdmin);
 

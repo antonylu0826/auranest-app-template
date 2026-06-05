@@ -38,7 +38,8 @@
     "events": "活動列表",
     "admin": "管理",
     "users": "使用者",
-    "apiKeys": "API 金鑰"
+    "apiKeys": "API 金鑰",
+    "roles": "角色管理"
   },
   "welcome": {
     "greeting": "歡迎回來",
@@ -142,7 +143,60 @@
     "calendar": "行事曆",
     "events": "活動列表",
     "users": "使用者",
-    "apiKeys": "API 金鑰"
+    "apiKeys": "API 金鑰",
+    "roles": "角色管理"
+  },
+  "roles": {
+    "title": "角色管理",
+    "newRole": "新增角色",
+    "searchPlaceholder": "搜尋角色名稱…",
+    "noRoles": "找不到角色。",
+    "name": "角色代碼",
+    "namePlaceholder": "例如：EDITOR",
+    "nameHint": "只允許大寫英文字母、數字及底線",
+    "displayName": "顯示名稱",
+    "displayNamePlaceholder": "例如：編輯者",
+    "permissionPolicy": "預設存取政策",
+    "permissions": "明細權限",
+    "userCount": "使用者數",
+    "apiKeyCount": "API 金鑰數",
+    "system": "系統角色",
+    "editRole": "編輯角色",
+    "deleteRole": "刪除角色",
+    "deleteConfirm": "此操作無法復原，角色將被永久刪除。",
+    "cannotDeleteSystem": "系統角色無法刪除。",
+    "cannotDeleteHasUsers": "角色仍有使用者或 API 金鑰指派，請先移除後再刪除。",
+    "allowAllNote": "此角色採用「允許全部」政策，明細設定不生效。",
+    "policy": {
+      "DENY_ALL": "拒絕（預設）",
+      "READ_ALL": "允許讀取",
+      "ALLOW_ALL": "允許全部"
+    },
+    "groups": {
+      "users": "使用者管理",
+      "apiKeys": "API 金鑰",
+      "calendar": "行事曆",
+      "event": "活動",
+      "driveFile": "檔案",
+      "driveFolder": "資料夾"
+    },
+    "perm": {
+      "USERS_READ": "讀取使用者",
+      "USERS_CREATE": "建立使用者",
+      "USERS_UPDATE": "更新使用者",
+      "USERS_DELETE": "刪除使用者",
+      "API_KEYS_READ": "讀取 API 金鑰",
+      "API_KEYS_CREATE": "建立 API 金鑰",
+      "API_KEYS_DELETE": "刪除 API 金鑰",
+      "CALENDAR_READ": "讀取行事曆",
+      "CALENDAR_CREATE": "建立行事曆",
+      "CALENDAR_UPDATE": "更新行事曆",
+      "CALENDAR_DELETE": "刪除行事曆",
+      "EVENT_READ": "讀取活動",
+      "EVENT_CREATE": "建立活動",
+      "EVENT_UPDATE": "更新活動",
+      "EVENT_DELETE": "刪除活動"
+    }
   },
   "apiKeys": {
     "title": "API 金鑰管理",

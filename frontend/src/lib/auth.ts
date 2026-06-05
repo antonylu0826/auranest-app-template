@@ -17,14 +17,14 @@ export function clearToken() {
   localStorage.removeItem("token");
 }
 
-export type UserRole = "ADMIN" | "USER";
-
 export interface CurrentUser {
   sub: string;
   email: string;
   name?: string;
   avatar?: string;
-  role?: UserRole;
+  roleName?: string;
+  permissionPolicy?: string;
+  permissions?: string[];
 }
 
 export function decodeToken(token: string): CurrentUser | null {
@@ -32,13 +32,15 @@ export function decodeToken(token: string): CurrentUser | null {
     const payload = token.split(".")[1];
     const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
     const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
-    const decoded = JSON.parse(new TextDecoder().decode(bytes));
+    const decoded = JSON.parse(new TextDecoder().decode(bytes)) as Record<string, unknown>;
     return {
-      sub: decoded.sub ?? "",
-      email: decoded.email ?? "",
-      name: decoded.name ?? decoded.email ?? "User",
+      sub: (decoded.sub as string) ?? "",
+      email: (decoded.email as string) ?? "",
+      name: (decoded.name as string | undefined) ?? (decoded.email as string) ?? "User",
       avatar: "",
-      role: decoded.role,
+      roleName: decoded.roleName as string | undefined,
+      permissionPolicy: (decoded.permissionPolicy as string | undefined) ?? "DENY_ALL",
+      permissions: (decoded.permissions as string[] | undefined) ?? [],
     };
   } catch {
     return null;

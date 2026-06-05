@@ -1,9 +1,26 @@
 import { Body, Controller, ForbiddenException, Get, Post, Request, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { Permission } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
-import { JwtAuthGuard } from './guards/jwt.guard';
-import { LoginDto, RegisterDto } from './dto/auth.dto';
 import { UsersService } from '../users/users.service';
+import { LoginDto, RegisterDto } from './dto/auth.dto';
+import { JwtAuthGuard } from './guards/jwt.guard';
+
+function buildTokenPayload(user: {
+  id: string;
+  email: string;
+  name?: string | null;
+  role: { name: string; permissionPolicy: string; permissions: { permission: Permission }[] };
+}) {
+  return {
+    sub: user.id,
+    email: user.email,
+    name: user.name,
+    roleName: user.role.name,
+    permissionPolicy: user.role.permissionPolicy,
+    permissions: user.role.permissions.map((p) => p.permission),
+  };
+}
 
 @Controller('auth')
 export class AuthController {
@@ -15,14 +32,16 @@ export class AuthController {
   @Post('register')
   async register(@Body() dto: RegisterDto) {
     const hashed = await bcrypt.hash(dto.password, 12);
-    const user = await this.usersService.create({
-      email: dto.email,
-      password: hashed,
-      name: dto.name,
-      role: 'USER',
-    });
-    const token = this.jwtService.sign({ sub: user.id, email: user.email, name: user.name, role: user.role });
-    return { token, user: { id: user.id, email: user.email, name: user.name, role: user.role } };
+    await this.usersService.create({ email: dto.email, password: hashed, name: dto.name });
+    // Reload with role+permissions for JWT signing
+    const user = await this.usersService.findByEmail(dto.email);
+    if (!user) throw new UnauthorizedException('Registration failed');
+    const payload = buildTokenPayload(user);
+    const token = this.jwtService.sign(payload);
+    return {
+      token,
+      user: { id: user.id, email: user.email, name: user.name, roleName: payload.roleName },
+    };
   }
 
   @Post('login')
@@ -32,13 +51,17 @@ export class AuthController {
       throw new UnauthorizedException('Invalid credentials');
     }
     if (!user.isActive) throw new ForbiddenException('Account is disabled');
-    const token = this.jwtService.sign({ sub: user.id, email: user.email, name: user.name, role: user.role });
-    return { token, user: { id: user.id, email: user.email, name: user.name, role: user.role } };
+    const payload = buildTokenPayload(user);
+    const token = this.jwtService.sign(payload);
+    return {
+      token,
+      user: { id: user.id, email: user.email, name: user.name, roleName: payload.roleName },
+    };
   }
 
   @Get('me')
   @UseGuards(JwtAuthGuard)
-  me(@Request() req: { user: { sub: string; email: string } }) {
+  me(@Request() req: { user: { sub: string; email: string; roleName: string } }) {
     return req.user;
   }
 }

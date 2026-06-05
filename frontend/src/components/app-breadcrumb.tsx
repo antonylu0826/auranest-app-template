@@ -13,7 +13,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 
-const TRANSLATABLE_SEGMENTS = ["dashboard", "users", "calendar", "events", "home", "api-keys"] as const;
+const TRANSLATABLE_SEGMENTS = ["dashboard", "users", "calendar", "events", "home", "api-keys", "roles"] as const;
 type TranslatableSegment = (typeof TRANSLATABLE_SEGMENTS)[number];
 
 // Maps URL segments to i18n keys when they differ (e.g. kebab-case → camelCase)

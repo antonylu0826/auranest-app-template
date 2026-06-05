@@ -4,7 +4,9 @@ export interface JwtPayload {
   sub: string;
   email: string;
   name: string | null;
-  role: string;
+  roleName: string;
+  permissionPolicy: string;
+  permissions: string[];
 }
 
 export const CurrentUser = createParamDecorator((_data: unknown, ctx: ExecutionContext): JwtPayload => {

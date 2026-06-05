@@ -2,12 +2,13 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, Copy, Plus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { AppSelect } from "@/components/ui/app-select";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -26,20 +27,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useTranslations } from "@/i18n/provider";
 import { apiKeysApi, type CreateApiKeyResult } from "@/lib/api-keys-api";
+import { rolesApi } from "@/lib/roles-api";
 import { ScopeSelector } from "./scope-selector";
 
 const schema = z.object({
   name: z.string().min(1),
-  role: z.enum(["ADMIN", "USER"]),
+  roleId: z.string().min(1),
   scopes: z.array(z.string()).min(1, "至少選擇一個 scope"),
 });
 
@@ -48,20 +43,30 @@ type FormValues = z.infer<typeof schema>;
 export function CreateApiKeyDialog() {
   const t = useTranslations("apiKeys");
   const tc = useTranslations("common");
-  const tu = useTranslations("users");
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [createdKey, setCreatedKey] = useState<CreateApiKeyResult | null>(null);
   const [copied, setCopied] = useState(false);
 
+  const { data: roles = [] } = useQuery({ queryKey: ["roles"], queryFn: rolesApi.list });
+  const roleOptions = roles.map((r) => ({ value: r.id, label: r.displayName }));
+  const userRoleId = roles.find((r) => r.name === "USER")?.id ?? "";
+
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { name: "", role: "USER", scopes: [] },
+    defaultValues: { name: "", roleId: "", scopes: [] },
   });
+
+  // Set USER role as default once roles finish loading (avoids setValue during render)
+  useEffect(() => {
+    if (userRoleId && !form.getValues("roleId")) {
+      form.setValue("roleId", userRoleId);
+    }
+  }, [userRoleId, form]);
 
   const mutation = useMutation({
     mutationFn: (values: FormValues) =>
-      apiKeysApi.create({ name: values.name, role: values.role, scopes: values.scopes }),
+      apiKeysApi.create({ name: values.name, roleId: values.roleId, scopes: values.scopes }),
     onSuccess: (result) => {
       qc.invalidateQueries({ queryKey: ["api-keys"] });
       setCreatedKey(result);
@@ -77,7 +82,7 @@ export function CreateApiKeyDialog() {
   }
 
   function handleClose(o: boolean) {
-    if (!o && createdKey && !copied) return; // block close until copied
+    if (!o && createdKey && !copied) return;
     setOpen(o);
     if (!o) {
       setCreatedKey(null);
@@ -133,21 +138,16 @@ export function CreateApiKeyDialog() {
               />
               <FormField
                 control={form.control}
-                name="role"
+                name="roleId"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t("fields.role")}</FormLabel>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <FormControl>
-                        <SelectTrigger className="w-full">
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="ADMIN">{tu("roles.ADMIN")}</SelectItem>
-                        <SelectItem value="USER">{tu("roles.USER")}</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <AppSelect
+                      value={field.value}
+                      onValueChange={(v) => field.onChange(v ?? "")}
+                      options={roleOptions}
+                      placeholder={t("fields.role")}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}

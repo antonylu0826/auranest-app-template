@@ -1,4 +1,5 @@
-import { type UserRole, getToken } from "./auth";
+import { getToken } from "./auth";
+import type { RoleRef } from "./roles-api";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
 
@@ -46,7 +47,8 @@ export interface User {
   id: string;
   email: string;
   name: string | null;
-  role: UserRole;
+  roleId: string;
+  role?: RoleRef & { permissionPolicy?: string };
   isActive: boolean;
   createdAt: string;
 }
@@ -55,11 +57,11 @@ export const usersApi = {
   list: (query?: ListQuery) =>
     apiFetch<PaginatedResult<User>>(`/users${toQueryString({ ...query })}`),
   get: (id: string) => apiFetch<User>(`/users/${id}`),
-  create: (data: { email: string; password: string; name?: string; role?: UserRole }) =>
+  create: (data: { email: string; password: string; name?: string; roleId?: string }) =>
     apiFetch<User>("/users", { method: "POST", body: JSON.stringify(data) }),
   update: (id: string, data: { name?: string; isActive?: boolean }) =>
     apiFetch<User>(`/users/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
-  updateRole: (id: string, role: UserRole) =>
-    apiFetch<User>(`/users/${id}/role`, { method: "PATCH", body: JSON.stringify({ role }) }),
+  updateRole: (id: string, roleId: string) =>
+    apiFetch<User>(`/users/${id}/role`, { method: "PATCH", body: JSON.stringify({ roleId }) }),
   remove: (id: string) => apiFetch<void>(`/users/${id}`, { method: "DELETE" }),
 };
