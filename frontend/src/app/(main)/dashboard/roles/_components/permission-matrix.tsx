@@ -7,8 +7,8 @@ import type { PermissionPolicy } from "@/lib/roles-api";
 const GROUPS: { key: string; prefix: string }[] = [
   { key: "users", prefix: "USERS_" },
   { key: "apiKeys", prefix: "API_KEYS_" },
-  { key: "driveFile", prefix: "DRIVE_FILE_" },
-  { key: "driveFolder", prefix: "DRIVE_FOLDER_" },
+  { key: "calendar", prefix: "CALENDAR_" },
+  { key: "event", prefix: "EVENT_" },
 ];
 
 interface PermissionMatrixProps {
