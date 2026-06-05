@@ -154,7 +154,7 @@ export function NavMain({ items }: NavMainProps) {
   const path = usePathname();
   const { state, isMobile } = useSidebar();
   const currentUser = useCurrentUser();
-  const isAdmin = currentUser?.role === "ADMIN";
+  const isAdmin = currentUser?.roleName === "ADMIN";
   const t = useTranslations("sidebar");
 
   const isItemActive = (url: string, subItems?: NavMainItem["subItems"]) => {

@@ -6,8 +6,9 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { AppSelect } from "@/components/ui/app-select";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -26,21 +27,15 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useTranslations } from "@/i18n/provider";
 import { apiKeysApi, type ApiKey } from "@/lib/api-keys-api";
+import { rolesApi } from "@/lib/roles-api";
 import { ScopeSelector } from "./scope-selector";
 
 const schema = z.object({
   name: z.string().min(1),
-  role: z.enum(["ADMIN", "USER"]),
+  roleId: z.string().min(1),
   scopes: z.array(z.string()).min(1),
   isActive: z.boolean(),
 });
@@ -50,15 +45,17 @@ type FormValues = z.infer<typeof schema>;
 export function EditApiKeyDialog({ apiKey }: { apiKey: ApiKey }) {
   const t = useTranslations("apiKeys");
   const tc = useTranslations("common");
-  const tu = useTranslations("users");
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
+
+  const { data: roles = [] } = useQuery({ queryKey: ["roles"], queryFn: rolesApi.list });
+  const roleOptions = roles.map((r) => ({ value: r.id, label: r.displayName }));
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       name: apiKey.name,
-      role: apiKey.role,
+      roleId: apiKey.roleId,
       scopes: apiKey.scopes,
       isActive: apiKey.isActive,
     },
@@ -82,7 +79,7 @@ export function EditApiKeyDialog({ apiKey }: { apiKey: ApiKey }) {
         if (o) {
           form.reset({
             name: apiKey.name,
-            role: apiKey.role,
+            roleId: apiKey.roleId,
             scopes: apiKey.scopes,
             isActive: apiKey.isActive,
           });
@@ -115,21 +112,16 @@ export function EditApiKeyDialog({ apiKey }: { apiKey: ApiKey }) {
             />
             <FormField
               control={form.control}
-              name="role"
+              name="roleId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("fields.role")}</FormLabel>
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <FormControl>
-                      <SelectTrigger className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="ADMIN">{tu("roles.ADMIN")}</SelectItem>
-                      <SelectItem value="USER">{tu("roles.USER")}</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <AppSelect
+                    value={field.value}
+                    onValueChange={(v) => field.onChange(v ?? "")}
+                    options={roleOptions}
+                    placeholder={t("fields.role")}
+                  />
                   <FormMessage />
                 </FormItem>
               )}

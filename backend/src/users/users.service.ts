@@ -1,5 +1,4 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { UserRole } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { paginate, toPrismaOrderBy, toPrismaPage, type PaginationQuery } from '../common/pagination';
 import { UpdateRoleDto, UpdateUserDto } from './dto/user.dto';
@@ -10,7 +9,8 @@ const PUBLIC_FIELDS = {
   id: true,
   email: true,
   name: true,
-  role: true,
+  roleId: true,
+  role: { select: { id: true, name: true, displayName: true, permissionPolicy: true } },
   isActive: true,
   createdAt: true,
 } as const;
@@ -19,14 +19,25 @@ const PUBLIC_FIELDS = {
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: { email: string; password: string; name?: string; role?: UserRole }) {
-    const existing = await this.prisma.user.findUnique({ where: { email: data.email } });
-    if (existing) throw new ConflictException('Email already registered');
-    return this.prisma.user.create({ data });
+  private async resolveDefaultRoleId(): Promise<string> {
+    const userRole = await this.prisma.role.findUnique({ where: { name: 'USER' } });
+    if (!userRole) throw new Error('USER system role not found — run the seed first');
+    return userRole.id;
   }
 
+  async create(data: { email: string; password: string; name?: string; roleId?: string }) {
+    const existing = await this.prisma.user.findUnique({ where: { email: data.email } });
+    if (existing) throw new ConflictException('Email already registered');
+    const roleId = data.roleId ?? (await this.resolveDefaultRoleId());
+    return this.prisma.user.create({ data: { ...data, roleId }, select: PUBLIC_FIELDS });
+  }
+
+  // Includes role + permissions for JWT signing in auth.controller
   findByEmail(email: string) {
-    return this.prisma.user.findUnique({ where: { email } });
+    return this.prisma.user.findUnique({
+      where: { email },
+      include: { role: { include: { permissions: true } } },
+    });
   }
 
   async findAll(query: PaginationQuery) {
@@ -62,7 +73,7 @@ export class UsersService {
 
   async updateRole(id: string, dto: UpdateRoleDto) {
     await this.findById(id);
-    return this.prisma.user.update({ where: { id }, data: { role: dto.role }, select: PUBLIC_FIELDS });
+    return this.prisma.user.update({ where: { id }, data: { roleId: dto.roleId }, select: PUBLIC_FIELDS });
   }
 
   async remove(id: string) {

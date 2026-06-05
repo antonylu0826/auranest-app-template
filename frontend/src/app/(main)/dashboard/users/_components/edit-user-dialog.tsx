@@ -6,8 +6,9 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { AppSelect } from "@/components/ui/app-select";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -26,20 +27,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useTranslations } from "@/i18n/provider";
 import { type User, usersApi } from "@/lib/api";
-import { type UserRole } from "@/lib/auth";
+import { rolesApi } from "@/lib/roles-api";
 
 const schema = z.object({
   name: z.string().min(1),
-  role: z.enum(["ADMIN", "USER"]),
+  roleId: z.string().min(1),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -50,9 +44,12 @@ export function EditUserDialog({ user }: { user: User }) {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
 
+  const { data: roles = [] } = useQuery({ queryKey: ["roles"], queryFn: rolesApi.list });
+  const roleOptions = roles.map((r) => ({ value: r.id, label: r.displayName }));
+
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { name: user.name ?? "", role: user.role },
+    defaultValues: { name: user.name ?? "", roleId: user.roleId },
   });
 
   const nameMutation = useMutation({
@@ -60,7 +57,7 @@ export function EditUserDialog({ user }: { user: User }) {
   });
 
   const roleMutation = useMutation({
-    mutationFn: (role: UserRole) => usersApi.updateRole(user.id, role),
+    mutationFn: (roleId: string) => usersApi.updateRole(user.id, roleId),
   });
 
   const onSubmit = async (values: FormValues) => {
@@ -69,8 +66,8 @@ export function EditUserDialog({ user }: { user: User }) {
       if (values.name !== (user.name ?? "")) {
         promises.push(nameMutation.mutateAsync(values.name));
       }
-      if (values.role !== user.role) {
-        promises.push(roleMutation.mutateAsync(values.role as UserRole));
+      if (values.roleId !== user.roleId) {
+        promises.push(roleMutation.mutateAsync(values.roleId));
       }
       if (promises.length > 0) {
         await Promise.all(promises);
@@ -90,7 +87,7 @@ export function EditUserDialog({ user }: { user: User }) {
       open={open}
       onOpenChange={(o) => {
         setOpen(o);
-        if (o) form.reset({ name: user.name ?? "", role: user.role });
+        if (o) form.reset({ name: user.name ?? "", roleId: user.roleId });
       }}
     >
       <DialogTrigger asChild>
@@ -119,21 +116,16 @@ export function EditUserDialog({ user }: { user: User }) {
             />
             <FormField
               control={form.control}
-              name="role"
+              name="roleId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("role")}</FormLabel>
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <FormControl>
-                      <SelectTrigger className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="ADMIN">{t("roles.ADMIN")}</SelectItem>
-                      <SelectItem value="USER">{t("roles.USER")}</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <AppSelect
+                    value={field.value}
+                    onValueChange={(v) => field.onChange(v ?? "")}
+                    options={roleOptions}
+                    placeholder={t("role")}
+                  />
                   <FormMessage />
                 </FormItem>
               )}

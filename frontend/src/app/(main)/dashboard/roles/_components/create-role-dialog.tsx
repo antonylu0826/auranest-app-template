@@ -2,17 +2,17 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { AppSelect } from "@/components/ui/app-select";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -27,66 +27,77 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useTranslations } from "@/i18n/provider";
-import { usersApi } from "@/lib/api";
-import { rolesApi } from "@/lib/roles-api";
+import { type PermissionPolicy, rolesApi } from "@/lib/roles-api";
+import { PermissionMatrix } from "./permission-matrix";
 
 const schema = z.object({
-  name: z.string().optional(),
-  email: z.string().email(),
-  password: z.string().min(8),
-  roleId: z.string().min(1),
+  name: z.string().min(1).max(50).regex(/^[A-Z0-9_]+$/, "Uppercase letters, digits, underscores only"),
+  displayName: z.string().min(1).max(100),
+  permissionPolicy: z.enum(["DENY_ALL", "READ_ALL", "ALLOW_ALL"]),
+  permissions: z.array(z.string()),
 });
 
 type FormValues = z.infer<typeof schema>;
 
-export function CreateUserDialog() {
-  const t = useTranslations("users");
+interface CreateRoleDialogProps {
+  availablePermissions: string[];
+}
+
+export function CreateRoleDialog({ availablePermissions }: CreateRoleDialogProps) {
+  const t = useTranslations("roles");
   const tc = useTranslations("common");
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
 
-  const { data: roles = [] } = useQuery({ queryKey: ["roles"], queryFn: rolesApi.list });
-  const roleOptions = roles.map((r) => ({ value: r.id, label: r.displayName }));
-  const userRoleId = roles.find((r) => r.name === "USER")?.id ?? "";
-
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { name: "", email: "", password: "", roleId: "" },
+    defaultValues: { name: "", displayName: "", permissionPolicy: "DENY_ALL", permissions: [] },
   });
 
-  // Set USER role as default once roles finish loading (avoids setValue during render)
-  useEffect(() => {
-    if (userRoleId && !form.getValues("roleId")) {
-      form.setValue("roleId", userRoleId);
-    }
-  }, [userRoleId, form]);
+  const policy = form.watch("permissionPolicy") as PermissionPolicy;
 
   const mutation = useMutation({
-    mutationFn: usersApi.create,
+    mutationFn: rolesApi.create,
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["users"] });
+      qc.invalidateQueries({ queryKey: ["roles"] });
       setOpen(false);
       form.reset();
-      toast.success(t("createUser"));
+      toast.success(t("newRole"));
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  function handleSubmit(values: FormValues) {
+    // For READ_ALL: strip *_READ perms from submitted set (covered by policy)
+    const perms = policy === "READ_ALL"
+      ? values.permissions.filter((p) => !p.endsWith("_READ"))
+      : values.permissions;
+    mutation.mutate({ ...values, permissions: perms });
+  }
 
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) form.reset(); }}>
       <DialogTrigger asChild>
         <Button size="sm">
           <Plus className="size-4 mr-2" />
-          {t("newUser")}
+          {t("newRole")}
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{t("createUser")}</DialogTitle>
+          <DialogTitle>{t("newRole")}</DialogTitle>
+          <DialogDescription className="sr-only">{t("newRole")}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit((d) => mutation.mutate(d))} className="space-y-4 pt-2">
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 pt-2">
             <FormField
               control={form.control}
               name="name"
@@ -102,12 +113,12 @@ export function CreateUserDialog() {
             />
             <FormField
               control={form.control}
-              name="email"
+              name="displayName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("email")}</FormLabel>
+                  <FormLabel>{t("displayName")}</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder={t("emailPlaceholder")} {...field} />
+                    <Input placeholder={t("displayNamePlaceholder")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -115,28 +126,37 @@ export function CreateUserDialog() {
             />
             <FormField
               control={form.control}
-              name="password"
+              name="permissionPolicy"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("password")}</FormLabel>
-                  <FormControl>
-                    <Input type="password" placeholder={t("passwordPlaceholder")} {...field} />
-                  </FormControl>
+                  <FormLabel>{t("permissionPolicy")}</FormLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="DENY_ALL">{t("policy.DENY_ALL")}</SelectItem>
+                      <SelectItem value="READ_ALL">{t("policy.READ_ALL")}</SelectItem>
+                      <SelectItem value="ALLOW_ALL">{t("policy.ALLOW_ALL")}</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
             <FormField
               control={form.control}
-              name="roleId"
+              name="permissions"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("role")}</FormLabel>
-                  <AppSelect
+                  <FormLabel>{t("permissions")}</FormLabel>
+                  <PermissionMatrix
+                    available={availablePermissions}
                     value={field.value}
-                    onValueChange={(v) => field.onChange(v ?? "")}
-                    options={roleOptions}
-                    placeholder={t("role")}
+                    onChange={field.onChange}
+                    policy={policy}
                   />
                   <FormMessage />
                 </FormItem>

@@ -1,11 +1,12 @@
-import { type UserRole } from "./auth";
 import { apiFetch, toQueryString, type ListQuery, type PaginatedResult } from "./api";
+import type { RoleRef } from "./roles-api";
 
 export interface ApiKey {
   id: string;
   name: string;
   prefix: string;
-  role: UserRole;
+  roleId: string;
+  role: RoleRef;
   scopes: string[];
   rateLimit: number | null;
   isActive: boolean;
@@ -22,7 +23,7 @@ export interface CreateApiKeyResult extends ApiKey {
 
 export interface CreateApiKeyDto {
   name: string;
-  role: UserRole;
+  roleId: string;
   scopes: string[];
   rateLimit?: number;
   expiresAt?: string;
@@ -30,7 +31,7 @@ export interface CreateApiKeyDto {
 
 export interface UpdateApiKeyDto {
   name?: string;
-  role?: UserRole;
+  roleId?: string;
   scopes?: string[];
   rateLimit?: number | null;
   isActive?: boolean;

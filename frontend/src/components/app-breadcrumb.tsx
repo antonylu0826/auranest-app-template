@@ -18,6 +18,7 @@ const SEGMENT_KEY_MAP: Record<string, string> = {
   users: "users",
   home: "home",
   "api-keys": "apiKeys",
+  "roles": "roles",
 };
 
 function isTranslatable(s: string): boolean {

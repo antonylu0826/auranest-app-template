@@ -1,4 +1,4 @@
-import { type LucideIcon, Home, KeyRound, Users } from "lucide-react";
+import { type LucideIcon, Home, KeyRound, ShieldCheck, Users } from "lucide-react";
 
 export interface NavSubItem {
   title: string;
@@ -53,6 +53,12 @@ export const sidebarItems: NavGroup[] = [
         title: "apiKeys",
         url: "/dashboard/api-keys",
         icon: KeyRound,
+        adminOnly: true,
+      },
+      {
+        title: "roles",
+        url: "/dashboard/roles",
+        icon: ShieldCheck,
         adminOnly: true,
       },
     ],

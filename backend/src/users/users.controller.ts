@@ -10,19 +10,18 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
+import { AdminGuard } from '../auth/guards/admin.guard';
 import { JwtOrApiKeyGuard } from '../auth/guards/jwt-or-api-key.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
-import { RolesGuard } from '../auth/guards/roles.guard';
 import { paginationQuerySchema, type PaginationQuery } from '../common/pagination';
 import { CreateUserDto, UpdateRoleDto, UpdateUserDto } from './dto/user.dto';
 import { UsersService } from './users.service';
 
+// User management is ADMIN-only (AdminGuard).
+// If custom roles should manage users in future, switch to PermissionGuard + @RequirePermissions.
 @Controller('users')
-@UseGuards(JwtOrApiKeyGuard, RolesGuard)
-@Roles(UserRole.ADMIN)
+@UseGuards(JwtOrApiKeyGuard, AdminGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 

@@ -36,7 +36,6 @@ const PAGE_SIZE = 20;
 export default function ApiKeysPage() {
   const t = useTranslations("apiKeys");
   const tc = useTranslations("common");
-  const tu = useTranslations("users");
 
   const [sorting, setSorting] = useState<SortingState>([]);
   const [search, setSearch] = useState("");
@@ -80,7 +79,7 @@ export default function ApiKeysPage() {
         header: t("fields.role"),
         enableSorting: false,
         cell: ({ row }) => (
-          <Badge variant="outline">{tu(`roles.${row.original.role}`)}</Badge>
+          <Badge variant="outline">{row.original.role?.displayName ?? row.original.roleId}</Badge>
         ),
       },
       {
@@ -159,7 +158,7 @@ export default function ApiKeysPage() {
         ),
       },
     ],
-    [t, tc, tu],
+    [t, tc],
   );
 
   const table = useReactTable({

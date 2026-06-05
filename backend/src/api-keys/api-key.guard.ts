@@ -29,6 +29,7 @@ export class ApiKeyGuard implements CanActivate {
         isActive: true,
         OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
       },
+      include: { role: { include: { permissions: true } } },
     });
 
     if (!apiKey) return false;
@@ -48,7 +49,9 @@ export class ApiKeyGuard implements CanActivate {
 
     request.user = {
       sub: apiKey.id,
-      role: apiKey.role,
+      roleName: apiKey.role.name,
+      permissionPolicy: apiKey.role.permissionPolicy,
+      permissions: apiKey.role.permissions.map((p) => p.permission),
       scopes: apiKey.scopes,
       isApiKey: true,
     };

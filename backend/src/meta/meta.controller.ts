@@ -1,13 +1,10 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
-import { UserRole } from '@prisma/client';
+import { AdminGuard } from '../auth/guards/admin.guard';
 import { JwtOrApiKeyGuard } from '../auth/guards/jwt-or-api-key.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
 import { MetaService, SchemaMeta } from './meta.service';
 
 @Controller('meta')
-@UseGuards(JwtOrApiKeyGuard, RolesGuard)
-@Roles(UserRole.ADMIN)
+@UseGuards(JwtOrApiKeyGuard, AdminGuard)
 export class MetaController {
   constructor(private readonly metaService: MetaService) {}
 

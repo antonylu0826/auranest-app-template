@@ -11,18 +11,16 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { UserRole } from '@prisma/client';
+import { AdminGuard } from '../auth/guards/admin.guard';
 import { JwtOrApiKeyGuard } from '../auth/guards/jwt-or-api-key.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { paginationQuerySchema, type PaginationQuery } from '../common/pagination';
 import { createApiKeySchema, updateApiKeySchema } from './dto/api-key.dto';
 import { ApiKeysService } from './api-keys.service';
 
+// API key management is ADMIN-only per user requirement.
 @Controller('api-keys')
-@UseGuards(JwtOrApiKeyGuard, RolesGuard)
-@Roles(UserRole.ADMIN)
+@UseGuards(JwtOrApiKeyGuard, AdminGuard)
 export class ApiKeysController {
   constructor(private readonly apiKeysService: ApiKeysService) {}
 

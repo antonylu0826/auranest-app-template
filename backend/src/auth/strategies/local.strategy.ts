@@ -1,13 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { UserRole } from '@prisma/client';
+import { Permission } from '@prisma/client';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 
 interface JwtPayload {
   sub: string;
   email: string;
   name?: string;
-  role: UserRole;
+  roleName: string;
+  permissionPolicy: string;
+  permissions: Permission[];
 }
 
 @Injectable()
@@ -21,6 +23,13 @@ export class LocalStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
 
   validate(payload: JwtPayload) {
-    return { sub: payload.sub, email: payload.email, name: payload.name, role: payload.role };
+    return {
+      sub: payload.sub,
+      email: payload.email,
+      name: payload.name,
+      roleName: payload.roleName,
+      permissionPolicy: payload.permissionPolicy ?? 'DENY_ALL',
+      permissions: payload.permissions ?? [],
+    };
   }
 }
