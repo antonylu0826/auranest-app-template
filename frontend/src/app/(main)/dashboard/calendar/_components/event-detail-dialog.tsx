@@ -88,7 +88,7 @@ export function EventDetailDialog({ event, open, onClose, onEdit }: EventDetailD
   return (
     <>
       <Dialog open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
-        <DialogContent className="sm:max-w-sm">
+        <DialogContent aria-describedby={undefined} className="sm:max-w-sm">
           <DialogHeader>
             <div className="flex items-start gap-3">
               <div

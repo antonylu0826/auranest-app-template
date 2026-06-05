@@ -94,7 +94,7 @@ function CreateCalendarDialog() {
           <Plus className="size-3.5" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-sm">
+      <DialogContent aria-describedby={undefined} className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>{t("createCalendar")}</DialogTitle>
         </DialogHeader>
