@@ -91,7 +91,7 @@ export function EditApiKeyDialog({ apiKey }: { apiKey: ApiKey }) {
           <Pencil className="size-3.5" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-lg">
+      <DialogContent aria-describedby={undefined} className="max-w-lg">
         <DialogHeader>
           <DialogTitle>{apiKey.name}</DialogTitle>
         </DialogHeader>

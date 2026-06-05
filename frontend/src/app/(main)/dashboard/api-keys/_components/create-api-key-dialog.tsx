@@ -99,7 +99,7 @@ export function CreateApiKeyDialog() {
           {t("newKey")}
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-lg">
+      <DialogContent aria-describedby={undefined} className="max-w-lg">
         <DialogHeader>
           <DialogTitle>{t("newKey")}</DialogTitle>
         </DialogHeader>

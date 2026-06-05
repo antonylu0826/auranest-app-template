@@ -1,6 +1,7 @@
 "use client";
 
-import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export interface AppSelectOption {
   value: string;
@@ -37,12 +38,10 @@ export function AppSelect({
 
   return (
     <Select value={internalValue} onValueChange={handleChange} disabled={disabled}>
-      <SelectTrigger className={className}>
-        <span className={!selected ? "text-muted-foreground" : ""}>
-          {selected ? selected.label : placeholder}
-        </span>
+      <SelectTrigger className={cn(className, !selected && "text-muted-foreground")}>
+        <SelectValue placeholder={placeholder} />
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent position="popper">
         {nullable && <SelectItem value={NONE}>—</SelectItem>}
         {options.map((o) => (
           <SelectItem key={o.value} value={o.value}>

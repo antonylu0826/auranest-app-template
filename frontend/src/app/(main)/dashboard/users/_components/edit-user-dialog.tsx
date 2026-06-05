@@ -95,7 +95,7 @@ export function EditUserDialog({ user }: { user: User }) {
           <Pencil className="size-3.5" />
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle>{t("editUser")}</DialogTitle>
         </DialogHeader>

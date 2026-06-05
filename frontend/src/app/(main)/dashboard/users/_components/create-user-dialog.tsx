@@ -81,7 +81,7 @@ export function CreateUserDialog() {
           {t("newUser")}
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle>{t("createUser")}</DialogTitle>
         </DialogHeader>
