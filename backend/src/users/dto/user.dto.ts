@@ -12,9 +12,9 @@ export class CreateUserDto {
   @IsOptional()
   name?: string;
 
-  @IsString()
+  @IsString({ each: true })
   @IsOptional()
-  roleId?: string;
+  roleIds?: string[];
 }
 
 export class UpdateUserDto {
@@ -27,7 +27,7 @@ export class UpdateUserDto {
   isActive?: boolean;
 }
 
-export class UpdateRoleDto {
-  @IsString()
-  roleId: string;
+export class UpdateRolesDto {
+  @IsString({ each: true })
+  roleIds: string[];
 }

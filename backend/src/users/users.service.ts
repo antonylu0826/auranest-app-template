@@ -1,7 +1,7 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { paginate, toPrismaOrderBy, toPrismaPage, type PaginationQuery } from '../common/pagination';
-import { UpdateRoleDto, UpdateUserDto } from './dto/user.dto';
+import { UpdateRolesDto, UpdateUserDto } from './dto/user.dto';
 
 const SORTABLE = ['name', 'email', 'createdAt'] as const;
 
@@ -9,11 +9,35 @@ const PUBLIC_FIELDS = {
   id: true,
   email: true,
   name: true,
-  roleId: true,
-  role: { select: { id: true, name: true, displayName: true, permissionPolicy: true } },
+  userRoles: {
+    select: {
+      role: {
+        select: {
+          id: true,
+          name: true,
+          displayName: true,
+          permissionPolicy: true,
+        },
+      },
+    },
+  },
   isActive: true,
   createdAt: true,
 } as const;
+
+type UserWithRoles = {
+  id: string;
+  email: string;
+  name: string | null;
+  userRoles: { role: { id: string; name: string; displayName: string; permissionPolicy: string } }[];
+  isActive: boolean;
+  createdAt: Date;
+};
+
+function mapUser(u: UserWithRoles) {
+  const { userRoles, ...rest } = u;
+  return { ...rest, roles: userRoles.map((ur) => ur.role) };
+}
 
 @Injectable()
 export class UsersService {
@@ -25,18 +49,45 @@ export class UsersService {
     return userRole.id;
   }
 
-  async create(data: { email: string; password: string; name?: string; roleId?: string }) {
+  async create(data: { email: string; password: string; name?: string; roleIds?: string[] }) {
     const existing = await this.prisma.user.findUnique({ where: { email: data.email } });
     if (existing) throw new ConflictException('Email already registered');
-    const roleId = data.roleId ?? (await this.resolveDefaultRoleId());
-    return this.prisma.user.create({ data: { ...data, roleId }, select: PUBLIC_FIELDS });
+
+    const roleIds =
+      data.roleIds && data.roleIds.length > 0
+        ? data.roleIds
+        : [await this.resolveDefaultRoleId()];
+
+    const { email, password, name } = data;
+    const user = await this.prisma.user.create({
+      data: {
+        email,
+        password,
+        name,
+        userRoles: {
+          create: roleIds.map((roleId) => ({ roleId })),
+        },
+      },
+      select: PUBLIC_FIELDS,
+    });
+    return mapUser(user);
   }
 
   // Includes role + permissions for JWT signing in auth.controller
   findByEmail(email: string) {
     return this.prisma.user.findUnique({
       where: { email },
-      include: { role: { include: { permissions: true } } },
+      include: {
+        userRoles: {
+          include: {
+            role: {
+              include: {
+                permissions: true,
+              },
+            },
+          },
+        },
+      },
     });
   }
 
@@ -57,23 +108,31 @@ export class UsersService {
       this.prisma.user.count({ where }),
     ]);
 
-    return paginate(data, total);
+    return paginate(data.map(mapUser), total);
   }
 
   async findById(id: string) {
     const user = await this.prisma.user.findUnique({ where: { id }, select: PUBLIC_FIELDS });
     if (!user) throw new NotFoundException('User not found');
-    return user;
+    return mapUser(user);
   }
 
   async update(id: string, dto: UpdateUserDto) {
     await this.findById(id);
-    return this.prisma.user.update({ where: { id }, data: dto, select: PUBLIC_FIELDS });
+    const user = await this.prisma.user.update({ where: { id }, data: dto, select: PUBLIC_FIELDS });
+    return mapUser(user);
   }
 
-  async updateRole(id: string, dto: UpdateRoleDto) {
+  async updateRoles(id: string, roleIds: string[]) {
     await this.findById(id);
-    return this.prisma.user.update({ where: { id }, data: { roleId: dto.roleId }, select: PUBLIC_FIELDS });
+    const user = await this.prisma.$transaction(async (tx) => {
+      await tx.userRole.deleteMany({ where: { userId: id } });
+      await tx.userRole.createMany({
+        data: roleIds.map((roleId) => ({ userId: id, roleId })),
+      });
+      return tx.user.findUnique({ where: { id }, select: PUBLIC_FIELDS });
+    });
+    return mapUser(user!);
   }
 
   async remove(id: string) {

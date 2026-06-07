@@ -49,7 +49,7 @@ export class ApiKeyGuard implements CanActivate {
 
     request.user = {
       sub: apiKey.id,
-      roleName: apiKey.role.name,
+      roleNames: [apiKey.role.name],
       permissionPolicy: apiKey.role.permissionPolicy,
       permissions: apiKey.role.permissions.map((p) => p.permission),
       scopes: apiKey.scopes,

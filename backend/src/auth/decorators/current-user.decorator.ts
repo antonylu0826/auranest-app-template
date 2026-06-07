@@ -5,9 +5,12 @@ export interface JwtPayload {
   email: string;
   name: string | null;
   roleName: string;
+  roleNames: string[];
   permissionPolicy: string;
   permissions: string[];
 }
+
+export type JwtUser = JwtPayload;
 
 export const CurrentUser = createParamDecorator((_data: unknown, ctx: ExecutionContext): JwtPayload => {
   const request = ctx.switchToHttp().getRequest<{ user: JwtPayload }>();

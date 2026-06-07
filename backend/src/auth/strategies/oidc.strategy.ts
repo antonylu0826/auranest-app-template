@@ -23,16 +23,16 @@ export class OidcStrategy extends PassportStrategy(Strategy, 'jwt') {
 
   // TODO (OIDC): permissionPolicy and permissions are always DENY_ALL/[] for OIDC users.
   // OIDC tokens are issued by Keycloak — app-level permissions cannot be embedded at login.
-  // ADMIN bypass still works via roleName check. READ_ALL/ALLOW_ALL unavailable in OIDC mode.
+  // ADMIN bypass still works via roleNames check. READ_ALL/ALLOW_ALL unavailable in OIDC mode.
   // Resolution: out of scope for pilot (AUTH_MODE=local is the test target).
   validate(payload: Record<string, unknown>) {
     const roles =
       (payload.realm_access as { roles?: string[] } | undefined)?.roles ?? [];
-    const roleName = roles.includes(SYSTEM_ADMIN_ROLE) ? SYSTEM_ADMIN_ROLE : SYSTEM_USER_ROLE;
+    const roleNames = roles.includes(SYSTEM_ADMIN_ROLE) ? [SYSTEM_ADMIN_ROLE] : [SYSTEM_USER_ROLE];
     return {
       sub: payload.sub,
       email: payload.email,
-      roleName,
+      roleNames,
       permissionPolicy: 'DENY_ALL' as const,
       permissions: [],
     };
