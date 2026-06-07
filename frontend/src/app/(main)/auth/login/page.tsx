@@ -60,7 +60,7 @@ export default function LoginPage() {
     try {
       const token = await loginLocal(values.email, values.password);
       setToken(token);
-      router.replace("/dashboard/users");
+      router.replace("/dashboard");
     } catch (err) {
       form.setError("root", {
         message: err instanceof Error ? err.message : t("loginError"),

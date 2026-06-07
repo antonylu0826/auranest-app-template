@@ -4,17 +4,8 @@ import { SYSTEM_ADMIN_ROLE, SYSTEM_USER_ROLE } from '../src/auth/constants';
 
 const prisma = new PrismaClient();
 
-// API_KEYS_* excluded: /api-keys is AdminGuard-only, so those grants would be dead for standard users.
-const USER_DEFAULT_PERMISSIONS: Permission[] = [
-  Permission.CALENDAR_READ,
-  Permission.CALENDAR_CREATE,
-  Permission.CALENDAR_UPDATE,
-  Permission.CALENDAR_DELETE,
-  Permission.EVENT_READ,
-  Permission.EVENT_CREATE,
-  Permission.EVENT_UPDATE,
-  Permission.EVENT_DELETE,
-];
+// USER role has no default permissions — add module-specific grants when forking.
+const USER_DEFAULT_PERMISSIONS: Permission[] = [];
 
 async function main() {
   const adminRole = await prisma.role.upsert({

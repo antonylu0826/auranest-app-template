@@ -33,9 +33,6 @@
   },
   "sidebar": {
     "home": "Home",
-    "calendar": "Calendar",
-    "calendarView": "Calendar",
-    "events": "Events",
     "admin": "Admin",
     "users": "Users",
     "apiKeys": "API Keys",
@@ -43,105 +40,11 @@
   },
   "welcome": {
     "greeting": "Welcome back",
-    "subtitle": "What's on your schedule today?",
+    "subtitle": "What would you like to do today?",
     "quickAccess": "Quick access"
-  },
-  "calendarView": {
-    "title": "Calendar",
-    "today": "Today",
-    "month": "Month",
-    "week": "Week",
-    "day": "Day",
-    "newEvent": "New event"
-  },
-  "events": {
-    "title": "Events",
-    "newEvent": "New event",
-    "createEvent": "Create event",
-    "searchPlaceholder": "Search events…",
-    "noEvents": "No events found.",
-    "name": "Event name",
-    "namePlaceholder": "Enter event name",
-    "description": "Description",
-    "descriptionPlaceholder": "Event description (optional)",
-    "location": "Location",
-    "locationPlaceholder": "Location (optional)",
-    "startAt": "Start",
-    "endAt": "End",
-    "allDay": "All day",
-    "calendar": "Calendar",
-    "color": "Color",
-    "editEvent": "Edit event",
-    "deleteEvent": "Delete event",
-    "deleteConfirm": "This action cannot be undone. The event will be permanently deleted.",
-    "tileDesc": "Manage calendar events and schedules",
-    "statuses": {
-      "PENDING": "Pending",
-      "ACCEPTED": "Accepted",
-      "DECLINED": "Declined",
-      "TENTATIVE": "Tentative"
-    }
-  },
-  "recurrence": {
-    "section": "Repeat",
-    "recurringEvent": "Recurring event",
-    "frequency": "Frequency",
-    "every": "Every",
-    "end": "End",
-    "freq": {
-      "none": "Does not repeat",
-      "daily": "Daily",
-      "weekly": "Weekly",
-      "monthly": "Monthly",
-      "yearly": "Yearly"
-    },
-    "unit": {
-      "daily": "day(s)",
-      "weekly": "week(s)",
-      "monthly": "month(s)",
-      "yearly": "year(s)"
-    },
-    "endType": {
-      "never": "Never",
-      "until": "On date",
-      "count": "After count"
-    },
-    "untilPlaceholder": "Pick an end date",
-    "times": "times",
-    "monthDayPrefix": "On day",
-    "monthDaySuffix": "of the month",
-    "previewHeader": "Next {count} occurrences:",
-    "editTitle": "Edit recurring event",
-    "deleteTitle": "Delete recurring event",
-    "editQuestion": "Which events do you want to edit?",
-    "deleteQuestion": "Which events do you want to delete?",
-    "continueEdit": "Continue editing",
-    "scope": {
-      "THIS_ONLY": "This event",
-      "THIS_AND_FOLLOWING": "This and following",
-      "ALL": "All events",
-      "thisOnlyDesc": "Only this occurrence",
-      "thisAndFollowingDesc": "This and all following occurrences",
-      "allDesc": "All events in the series"
-    }
-  },
-  "calendars": {
-    "title": "Calendars",
-    "newCalendar": "New calendar",
-    "createCalendar": "Create calendar",
-    "editCalendar": "Edit calendar",
-    "deleteCalendar": "Delete calendar",
-    "deleteConfirm": "All events in this calendar will also be deleted. This action cannot be undone.",
-    "name": "Name",
-    "namePlaceholder": "e.g. Work, Personal",
-    "color": "Color",
-    "noCalendars": "No calendars yet.",
-    "tileDesc": "Manage my calendars"
   },
   "pages": {
     "dashboard": "Home",
-    "calendar": "Calendar",
-    "events": "Events",
     "users": "Users",
     "apiKeys": "API Keys",
     "roles": "Roles"
@@ -174,11 +77,7 @@
     },
     "groups": {
       "users": "User Management",
-      "apiKeys": "API Keys",
-      "calendar": "Calendars",
-      "event": "Events",
-      "driveFile": "Files",
-      "driveFolder": "Folders"
+      "apiKeys": "API Keys"
     },
     "perm": {
       "USERS_READ": "Read users",
@@ -187,15 +86,7 @@
       "USERS_DELETE": "Delete users",
       "API_KEYS_READ": "Read API keys",
       "API_KEYS_CREATE": "Create API keys",
-      "API_KEYS_DELETE": "Delete API keys",
-      "CALENDAR_READ": "Read calendars",
-      "CALENDAR_CREATE": "Create calendars",
-      "CALENDAR_UPDATE": "Update calendars",
-      "CALENDAR_DELETE": "Delete calendars",
-      "EVENT_READ": "Read events",
-      "EVENT_CREATE": "Create events",
-      "EVENT_UPDATE": "Update events",
-      "EVENT_DELETE": "Delete events"
+      "API_KEYS_DELETE": "Delete API keys"
     }
   },
   "apiKeys": {

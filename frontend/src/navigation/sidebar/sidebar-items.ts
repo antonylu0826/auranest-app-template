@@ -1,4 +1,4 @@
-import { type LucideIcon, Home, Users, CalendarDays, List, KeyRound, ShieldCheck } from "lucide-react";
+import { type LucideIcon, Home, Users, KeyRound, ShieldCheck } from "lucide-react";
 
 export interface NavSubItem {
   title: string;
@@ -40,22 +40,6 @@ export const sidebarItems: NavGroup[] = [
   },
   {
     id: 2,
-    label: "calendar",
-    items: [
-      {
-        title: "calendarView",
-        url: "/dashboard/calendar",
-        icon: CalendarDays,
-      },
-      {
-        title: "events",
-        url: "/dashboard/events",
-        icon: List,
-      },
-    ],
-  },
-  {
-    id: 3,
     label: "admin",
     adminOnly: true,
     items: [
