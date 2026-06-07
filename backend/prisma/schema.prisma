@@ -54,7 +54,7 @@ model Role {
   /// Default deny; explicit permissions in RolePermission are additive on top of the policy.
   permissionPolicy PermissionPolicy @default(DENY_ALL) @map("permission_policy")
   permissions      RolePermission[]
-  users            User[]
+  userRoles        UserRole[]
   apiKeys          ApiKey[]
   createdAt        DateTime         @default(now()) @map("created_at")
   updatedAt        DateTime         @updatedAt @map("updated_at")
@@ -74,6 +74,18 @@ model RolePermission {
   @@map("role_permissions")
 }
 
+/// Junction table supporting many-to-many User ↔ Role assignment. @internal
+model UserRole {
+  userId    String   @map("user_id")
+  roleId    String   @map("role_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
 /// System user account. Used for authentication in local-auth mode.
 /// In OIDC mode the password field is unused; identity is verified via JWKS.
 model User {
@@ -83,12 +95,12 @@ model User {
   password  String
   /// Display name shown in UI; optional.
   name      String?
-  roleId    String   @map("role_id")
-  role      Role     @relation(fields: [roleId], references: [id])
   /// Soft-disable without deleting — preserves audit history.
   isActive  Boolean  @default(true) @map("is_active")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
+
+  userRoles      UserRole[]
 
   calendars      Calendar[]
   ownedEvents    Event[]

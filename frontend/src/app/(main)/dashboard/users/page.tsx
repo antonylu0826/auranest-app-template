@@ -92,11 +92,15 @@ export default function UsersPage() {
         ),
       },
       {
-        accessorKey: "role",
+        accessorKey: "roles",
         header: t("role"),
         enableSorting: false,
         cell: ({ row }) => (
-          <Badge variant="outline">{row.original.role?.displayName ?? row.original.roleId}</Badge>
+          <div className="flex flex-wrap gap-1">
+            {row.original.roles.map((r) => (
+              <Badge key={r.id} variant="outline">{r.displayName}</Badge>
+            ))}
+          </div>
         ),
       },
       {

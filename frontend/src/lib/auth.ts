@@ -22,7 +22,7 @@ export interface CurrentUser {
   email: string;
   name?: string;
   avatar?: string;
-  roleName?: string;
+  roleNames?: string[];
   permissionPolicy?: string;
   permissions?: string[];
 }
@@ -38,7 +38,7 @@ export function decodeToken(token: string): CurrentUser | null {
       email: (decoded.email as string) ?? "",
       name: (decoded.name as string | undefined) ?? (decoded.email as string) ?? "User",
       avatar: "",
-      roleName: decoded.roleName as string | undefined,
+      roleNames: (decoded.roleNames as string[] | undefined) ?? [],
       permissionPolicy: (decoded.permissionPolicy as string | undefined) ?? "DENY_ALL",
       permissions: (decoded.permissions as string[] | undefined) ?? [],
     };

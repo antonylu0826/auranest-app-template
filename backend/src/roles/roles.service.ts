@@ -18,7 +18,7 @@ export class RolesService {
       orderBy: [{ isSystem: 'desc' }, { name: 'asc' }],
       include: {
         permissions: { select: { permission: true } },
-        _count: { select: { users: true, apiKeys: true } },
+        _count: { select: { userRoles: true, apiKeys: true } },
       },
     });
     return roles.map((r) => ({
@@ -28,7 +28,7 @@ export class RolesService {
       isSystem: r.isSystem,
       permissionPolicy: r.permissionPolicy,
       permissions: r.permissions.map((p) => p.permission),
-      userCount: r._count.users,
+      userCount: r._count.userRoles,
       apiKeyCount: r._count.apiKeys,
     }));
   }
@@ -36,7 +36,7 @@ export class RolesService {
   async findOne(id: string) {
     const role = await this.prisma.role.findUnique({
       where: { id },
-      include: { permissions: { select: { permission: true } }, _count: { select: { users: true, apiKeys: true } } },
+      include: { permissions: { select: { permission: true } }, _count: { select: { userRoles: true, apiKeys: true } } },
     });
     if (!role) throw new NotFoundException('Role not found');
     return {
@@ -46,7 +46,7 @@ export class RolesService {
       isSystem: role.isSystem,
       permissionPolicy: role.permissionPolicy,
       permissions: role.permissions.map((p) => p.permission),
-      userCount: role._count.users,
+      userCount: role._count.userRoles,
       apiKeyCount: role._count.apiKeys,
     };
   }
@@ -65,7 +65,7 @@ export class RolesService {
           create: dto.permissions.map((p) => ({ permission: p })),
         },
       },
-      include: { permissions: { select: { permission: true } }, _count: { select: { users: true, apiKeys: true } } },
+      include: { permissions: { select: { permission: true } }, _count: { select: { userRoles: true, apiKeys: true } } },
     });
     return {
       id: role.id,
@@ -74,7 +74,7 @@ export class RolesService {
       isSystem: role.isSystem,
       permissionPolicy: role.permissionPolicy,
       permissions: role.permissions.map((p) => p.permission),
-      userCount: role._count.users,
+      userCount: role._count.userRoles,
       apiKeyCount: role._count.apiKeys,
     };
   }
@@ -105,14 +105,14 @@ export class RolesService {
       return this.findOne(id);
     }
 
-    return this.prisma.role.update({
+    await this.prisma.role.update({
       where: { id },
       data: {
         ...(dto.displayName !== undefined && { displayName: dto.displayName }),
         ...(dto.permissionPolicy !== undefined && { permissionPolicy: dto.permissionPolicy }),
       },
-      select: { id: true, name: true, displayName: true, isSystem: true, permissionPolicy: true },
     });
+    return this.findOne(id);
   }
 
   async replacePermissions(id: string, dto: ReplacePermissionsDto) {
@@ -135,11 +135,11 @@ export class RolesService {
   async remove(id: string) {
     const role = await this.prisma.role.findUnique({
       where: { id },
-      include: { _count: { select: { users: true, apiKeys: true } } },
+      include: { _count: { select: { userRoles: true, apiKeys: true } } },
     });
     if (!role) throw new NotFoundException('Role not found');
     if (role.isSystem) throw new BadRequestException('System roles cannot be deleted');
-    if (role._count.users > 0 || role._count.apiKeys > 0) {
+    if (role._count.userRoles > 0 || role._count.apiKeys > 0) {
       throw new BadRequestException('Cannot delete a role that is assigned to users or API keys');
     }
     await this.prisma.role.delete({ where: { id } });

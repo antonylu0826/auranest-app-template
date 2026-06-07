@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -15,7 +16,7 @@ import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { AdminGuard } from '../auth/guards/admin.guard';
 import { JwtOrApiKeyGuard } from '../auth/guards/jwt-or-api-key.guard';
 import { paginationQuerySchema, type PaginationQuery } from '../common/pagination';
-import { CreateUserDto, UpdateRoleDto, UpdateUserDto } from './dto/user.dto';
+import { CreateUserDto, UpdateRolesDto, UpdateUserDto } from './dto/user.dto';
 import { UsersService } from './users.service';
 
 // User management is ADMIN-only (AdminGuard).
@@ -46,9 +47,9 @@ export class UsersController {
     return this.usersService.update(id, dto);
   }
 
-  @Patch(':id/role')
-  updateRole(@Param('id') id: string, @Body() dto: UpdateRoleDto) {
-    return this.usersService.updateRole(id, dto);
+  @Put(':id/roles')
+  updateRoles(@Param('id') id: string, @Body() dto: UpdateRolesDto) {
+    return this.usersService.updateRoles(id, dto.roleIds);
   }
 
   @Delete(':id')

@@ -7,7 +7,7 @@ interface JwtPayload {
   sub: string;
   email: string;
   name?: string;
-  roleName: string;
+  roleNames: string[];
   permissionPolicy: string;
   permissions: Permission[];
 }
@@ -27,7 +27,7 @@ export class LocalStrategy extends PassportStrategy(Strategy, 'jwt') {
       sub: payload.sub,
       email: payload.email,
       name: payload.name,
-      roleName: payload.roleName,
+      roleNames: payload.roleNames ?? [],
       permissionPolicy: payload.permissionPolicy ?? 'DENY_ALL',
       permissions: payload.permissions ?? [],
     };

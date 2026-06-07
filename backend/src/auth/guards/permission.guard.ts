@@ -16,12 +16,12 @@ export class PermissionGuard implements CanActivate {
     if (!required?.length) return true;
 
     const { user } = ctx.switchToHttp().getRequest<{
-      user?: { roleName?: string; permissionPolicy?: string; permissions?: Permission[] };
+      user?: { roleNames?: string[]; permissionPolicy?: string; permissions?: Permission[] };
     }>();
     if (!user) throw new ForbiddenException();
 
     // 1. ADMIN always bypasses
-    if (user.roleName === SYSTEM_ADMIN_ROLE) return true;
+    if (user.roleNames?.includes(SYSTEM_ADMIN_ROLE)) return true;
 
     // 2. ALLOW_ALL policy bypasses
     if (user.permissionPolicy === 'ALLOW_ALL') return true;

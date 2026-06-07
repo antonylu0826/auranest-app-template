@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { AppSelect } from "@/components/ui/app-select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -35,7 +35,7 @@ const schema = z.object({
   name: z.string().optional(),
   email: z.string().email(),
   password: z.string().min(8),
-  roleId: z.string().min(1),
+  roleIds: z.array(z.string()).min(1),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -47,18 +47,17 @@ export function CreateUserDialog() {
   const [open, setOpen] = useState(false);
 
   const { data: roles = [] } = useQuery({ queryKey: ["roles"], queryFn: rolesApi.list });
-  const roleOptions = roles.map((r) => ({ value: r.id, label: r.displayName }));
   const userRoleId = roles.find((r) => r.name === "USER")?.id ?? "";
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { name: "", email: "", password: "", roleId: "" },
+    defaultValues: { name: "", email: "", password: "", roleIds: [] },
   });
 
   // Set USER role as default once roles finish loading (avoids setValue during render)
   useEffect(() => {
-    if (userRoleId && !form.getValues("roleId")) {
-      form.setValue("roleId", userRoleId);
+    if (userRoleId && form.getValues("roleIds").length === 0) {
+      form.setValue("roleIds", [userRoleId]);
     }
   }, [userRoleId, form]);
 
@@ -128,16 +127,26 @@ export function CreateUserDialog() {
             />
             <FormField
               control={form.control}
-              name="roleId"
+              name="roleIds"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("role")}</FormLabel>
-                  <AppSelect
-                    value={field.value}
-                    onValueChange={(v) => field.onChange(v ?? "")}
-                    options={roleOptions}
-                    placeholder={t("role")}
-                  />
+                  <div className="space-y-2 rounded-md border p-3 max-h-40 overflow-y-auto">
+                    {roles.map((role) => (
+                      <label key={role.id} className="flex items-center gap-2 text-sm cursor-pointer">
+                        <Checkbox
+                          checked={field.value.includes(role.id)}
+                          onCheckedChange={(checked) => {
+                            const next = checked
+                              ? [...field.value, role.id]
+                              : field.value.filter((id) => id !== role.id);
+                            field.onChange(next);
+                          }}
+                        />
+                        {role.displayName}
+                      </label>
+                    ))}
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}

@@ -10,15 +10,28 @@ function buildTokenPayload(user: {
   id: string;
   email: string;
   name?: string | null;
-  role: { name: string; permissionPolicy: string; permissions: { permission: Permission }[] };
+  userRoles: { role: { name: string; permissionPolicy: string; permissions: { permission: Permission }[] } }[];
 }) {
+  const roles = user.userRoles.map((ur) => ur.role);
+  const roleNames = roles.map((r) => r.name);
+
+  const policyOrder: Record<string, number> = { ALLOW_ALL: 2, READ_ALL: 1, DENY_ALL: 0 };
+  const effectivePolicy = roles.reduce(
+    (best, r) => (policyOrder[r.permissionPolicy] > policyOrder[best] ? r.permissionPolicy : best),
+    'DENY_ALL',
+  );
+
+  const permissions = [...new Set(roles.flatMap((r) => r.permissions.map((p) => p.permission)))];
+  const roleName = roleNames.includes('ADMIN') ? 'ADMIN' : (roleNames[0] || '');
+
   return {
     sub: user.id,
     email: user.email,
     name: user.name,
-    roleName: user.role.name,
-    permissionPolicy: user.role.permissionPolicy,
-    permissions: user.role.permissions.map((p) => p.permission),
+    roleName,
+    roleNames,
+    permissionPolicy: effectivePolicy,
+    permissions,
   };
 }
 
@@ -40,7 +53,7 @@ export class AuthController {
     const token = this.jwtService.sign(payload);
     return {
       token,
-      user: { id: user.id, email: user.email, name: user.name, roleName: payload.roleName },
+      user: { id: user.id, email: user.email, name: user.name, roleNames: payload.roleNames },
     };
   }
 
@@ -55,7 +68,7 @@ export class AuthController {
     const token = this.jwtService.sign(payload);
     return {
       token,
-      user: { id: user.id, email: user.email, name: user.name, roleName: payload.roleName },
+      user: { id: user.id, email: user.email, name: user.name, roleNames: payload.roleNames },
     };
   }
 
